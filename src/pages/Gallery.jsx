@@ -128,7 +128,7 @@ function PriceDropdown({ allMin, allMax, priceMin, priceMax, onMin, onMax, onRes
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-64">
+        <div className="absolute top-full right-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-64">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Opseg cene</span>
             {isFiltered && (
@@ -471,30 +471,30 @@ export default function Gallery() {
                 </div>
               </div>
 
-              {/* Row 2: Tabs + Cena scrollable */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
-                {TABS.map((t, i) => (
-                  <button
-                    key={t.key}
-                    onClick={() => setActiveTab(t.key)}
-                    style={{
-                      borderRadius: i === 0 ? '4px 0 0 4px' : i === TABS.length - 1 ? '0 4px 4px 0' : '0',
-                      marginLeft: i === 0 ? 0 : -1,
-                    }}
-                    className={`${pillCls(activeTab === t.key)} shrink-0`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
+              {/* Row 2: Tabs (scrollable) + Cena outside overflow */}
+              <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-[0px] overflow-x-auto scrollbar-none flex-1">
+                  {TABS.map((t, i) => (
+                    <button
+                      key={t.key}
+                      onClick={() => setActiveTab(t.key)}
+                      style={{
+                        borderRadius: i === 0 ? '4px 0 0 4px' : i === TABS.length - 1 ? '0 4px 4px 0' : '0',
+                        marginLeft: i === 0 ? 0 : -1,
+                      }}
+                      className={`${pillCls(activeTab === t.key)} shrink-0`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
                 {showPriceDropdown && (
-                  <div className="ml-1 shrink-0">
-                    <PriceDropdown
-                      allMin={allMin} allMax={allMax}
-                      priceMin={priceMin} priceMax={priceMax}
-                      onMin={setPriceMin} onMax={setPriceMax}
-                      onReset={() => { setPriceMin(allMin); setPriceMax(allMax) }}
-                    />
-                  </div>
+                  <PriceDropdown
+                    allMin={allMin} allMax={allMax}
+                    priceMin={priceMin} priceMax={priceMax}
+                    onMin={setPriceMin} onMax={setPriceMax}
+                    onReset={() => { setPriceMin(allMin); setPriceMax(allMax) }}
+                  />
                 )}
               </div>
 
