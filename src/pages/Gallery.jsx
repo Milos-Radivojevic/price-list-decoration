@@ -436,60 +436,65 @@ export default function Gallery() {
 
             {/* ── Mobile filter rows (< sm) ── */}
             <div className="sm:hidden flex flex-col gap-2">
-              {/* Search */}
-              <div className="relative">
-                <svg viewBox="0 0 20 20" fill="currentColor"
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none">
-                  <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd" />
-                </svg>
-                <input
-                  type="text" value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="Pretraži dekoracije..."
-                  className="w-full h-[34px] pl-8 pr-3 text-xs text-gray-900 bg-gray-50 border border-gray-300 outline-none focus:bg-white focus:border-rose-400 focus:ring-1 focus:ring-rose-100 transition-all"
-                  style={{ borderRadius: 4 }}
-                />
-                {search && (
-                  <button onClick={() => setSearch('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-700">
-                    <svg viewBox="0 0 16 16" fill="currentColor" width="11" height="11">
-                      <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
-                    </svg>
-                  </button>
-                )}
+              {/* Row 1: Kategorija + Search side by side */}
+              <div className="flex gap-2">
+                <select
+                  value={activeKat}
+                  onChange={e => { setActiveKat(e.target.value); setActiveTab('sve') }}
+                  className="h-[38px] pl-2.5 pr-6 text-xs text-gray-600 bg-white border border-gray-300 outline-none appearance-none cursor-pointer shrink-0 w-[42%]"
+                  style={{ borderRadius: 6, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center', backgroundSize: '12px' }}
+                >
+                  <option value="">Kategorija</option>
+                  {kategorije.map(k => (
+                    <option key={k.id} value={k.id}>{k.naziv}</option>
+                  ))}
+                </select>
+                <div className="relative flex-1">
+                  <svg viewBox="0 0 20 20" fill="currentColor"
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none">
+                    <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd" />
+                  </svg>
+                  <input
+                    type="text" value={search} onChange={e => setSearch(e.target.value)}
+                    placeholder="Pretraži..."
+                    className="w-full h-[38px] pl-8 pr-3 text-xs text-gray-900 bg-gray-50 border border-gray-300 outline-none focus:bg-white focus:border-rose-400 focus:ring-1 focus:ring-rose-100 transition-all"
+                    style={{ borderRadius: 6 }}
+                  />
+                  {search && (
+                    <button onClick={() => setSearch('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-700">
+                      <svg viewBox="0 0 16 16" fill="currentColor" width="11" height="11">
+                        <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Category + tabs + price scroll row */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-                {kategorije.length > 0 && (
-                  <select
-                    value={activeKat}
-                    onChange={e => { setActiveKat(e.target.value); setActiveTab('sve') }}
-                    className="h-[34px] pl-2.5 pr-6 text-xs text-gray-600 bg-white border border-gray-300 outline-none appearance-none cursor-pointer shrink-0"
-                    style={{ borderRadius: 4, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center', backgroundSize: '12px' }}
-                  >
-                    <option value="">Kategorija</option>
-                    {kategorije.map(k => (
-                      <option key={k.id} value={k.id}>{k.naziv}</option>
-                    ))}
-                  </select>
-                )}
-                {TABS.map((t) => (
+              {/* Row 2: Tabs + Cena scrollable */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
+                {TABS.map((t, i) => (
                   <button
                     key={t.key}
                     onClick={() => setActiveTab(t.key)}
-                    style={{ borderRadius: 4 }}
+                    style={{
+                      borderRadius: i === 0 ? '4px 0 0 4px' : i === TABS.length - 1 ? '0 4px 4px 0' : '0',
+                      marginLeft: i === 0 ? 0 : -1,
+                    }}
                     className={`${pillCls(activeTab === t.key)} shrink-0`}
                   >
                     {t.label}
                   </button>
                 ))}
                 {showPriceDropdown && (
-                  <PriceDropdown
-                    allMin={allMin} allMax={allMax}
-                    priceMin={priceMin} priceMax={priceMax}
-                    onMin={setPriceMin} onMax={setPriceMax}
-                    onReset={() => { setPriceMin(allMin); setPriceMax(allMax) }}
-                  />
+                  <div className="ml-1 shrink-0">
+                    <PriceDropdown
+                      allMin={allMin} allMax={allMax}
+                      priceMin={priceMin} priceMax={priceMax}
+                      onMin={setPriceMin} onMax={setPriceMax}
+                      onReset={() => { setPriceMin(allMin); setPriceMax(allMax) }}
+                    />
+                  </div>
                 )}
               </div>
 
@@ -508,13 +513,13 @@ export default function Gallery() {
       <main id="proizvodi" className="max-w-6xl mx-auto px-4 sm:px-6 pb-24">
 
         {/* H1 + results + sort row */}
-        <div className="flex items-center justify-between py-5 sm:py-6">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">
+        <div className="flex items-start justify-between gap-3 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-3">
+            <h1 className="text-base sm:text-xl font-bold text-gray-900 tracking-tight">
               Cvetići za kićenje svatova
             </h1>
             {!loading && (
-              <span className="text-sm text-gray-400">
+              <span className="text-xs sm:text-sm text-gray-400">
                 {sorted.length} {sorted.length === 1 ? 'rezultat' : 'rezultata'}
               </span>
             )}
@@ -522,8 +527,8 @@ export default function Gallery() {
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
-            className="h-[36px] pl-3 pr-8 text-sm text-gray-700 bg-white border border-gray-300 outline-none hover:border-gray-400 transition-colors appearance-none cursor-pointer rounded-lg"
-            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '14px' }}
+            className="shrink-0 h-[32px] sm:h-[36px] pl-2 sm:pl-3 pr-6 sm:pr-8 text-xs sm:text-sm text-gray-700 bg-white border border-gray-300 outline-none hover:border-gray-400 transition-colors appearance-none cursor-pointer rounded-lg"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center', backgroundSize: '13px' }}
           >
             {SORT_OPTIONS.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
