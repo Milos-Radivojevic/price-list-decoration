@@ -11,7 +11,7 @@ const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
 const emptyForm = {
   naziv: '', opis: '', cenaMuska: '', cenaZenska: '',
-  grupa: '', slikeUrls: [], redosled: '',
+  grupa: '', tag: '', slikeUrls: [], redosled: '',
 }
 
 const inputCls = (err) =>
@@ -57,6 +57,7 @@ export default function DekoracijaForm() {
           cenaMuska: d.cenaMuska != null ? String(d.cenaMuska) : '',
           cenaZenska: d.cenaZenska != null ? String(d.cenaZenska) : '',
           grupa: d.grupa || kols[0]?.slug || 'rever',
+          tag: d.tag || '',
           slikeUrls: d.slikeUrls?.length ? d.slikeUrls : (d.slikaUrl ? [d.slikaUrl] : []),
           redosled: d.redosled != null ? String(d.redosled) : '',
         })
@@ -138,6 +139,7 @@ export default function DekoracijaForm() {
         cenaMuska: Number(form.cenaMuska),
         cenaZenska: Number(form.cenaZenska),
         grupa: form.grupa,
+        tag: form.tag || '',
         slikeUrls: form.slikeUrls,
         redosled: form.redosled.trim() ? Number(form.redosled) : 0,
       }
@@ -218,6 +220,18 @@ export default function DekoracijaForm() {
                     <option key={k.id} value={k.slug}>{k.naziv}</option>
                   ))
                 )}
+              </select>
+            </div>
+
+            {/* Tag */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Oznaka</label>
+              <select value={form.tag}
+                onChange={e => setForm(f => ({ ...f, tag: e.target.value }))}
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all appearance-none">
+                <option value="">Bez oznake</option>
+                <option value="novo">Novo</option>
+                <option value="akcija">Akcija</option>
               </select>
             </div>
 
