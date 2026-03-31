@@ -186,9 +186,10 @@ function applySorting(list, sort) {
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Gallery() {
   const [dekoracije, setDekoracije]   = useState([])
-  const [kolekcije, setKolekcije]     = useState([])
+  const [kategorije, setKategorije]   = useState([])
   const [loading, setLoading]         = useState(true)
   const [search, setSearch]           = useState('')
+  const [activeKat, setActiveKat]     = useState('')
   const [activeTab, setActiveTab]     = useState('sve')
   const [priceMin, setPriceMin]       = useState(0)
   const [priceMax, setPriceMax]       = useState(10000)
@@ -200,21 +201,39 @@ export default function Gallery() {
   const [interestCalc, setInterestCalc] = useState(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  const visibleKols = activeKat
+    ? (kategorije.find(k => k.id === activeKat)?.kolekcije || [])
+    : kategorije.flatMap(k => k.kolekcije)
+
   const TABS = [
     { key: 'sve', label: 'Sve' },
-    ...kolekcije.map(k => ({ key: k.slug, label: k.naziv })),
+    ...visibleKols.map(k => ({ key: k.slug, label: k.naziv })),
   ]
 
   useEffect(() => {
     async function load() {
       try {
-        const [dekSnap, kolSnap] = await Promise.all([
+        const [dekSnap, katSnap] = await Promise.all([
           getDocs(query(collection(db, 'dekoracije'), orderBy('redosled', 'asc'))),
-          getDocs(query(collection(db, 'kolekcije'), orderBy('kreirano', 'asc'))),
+          getDocs(query(collection(db, 'kategorije'), orderBy('kreirano', 'asc'))),
         ])
         const all = dekSnap.docs.map(d => ({ id: d.id, ...d.data() }))
         setDekoracije(all)
-        setKolekcije(kolSnap.docs.map(d => ({ id: d.id, ...d.data() })))
+
+        const kats = await Promise.all(
+          katSnap.docs.map(async katDoc => {
+            const kolSnap = await getDocs(
+              query(collection(db, 'kategorije', katDoc.id, 'kolekcije'), orderBy('kreirano', 'asc'))
+            )
+            return {
+              id: katDoc.id,
+              ...katDoc.data(),
+              kolekcije: kolSnap.docs.map(k => ({ id: k.id, ...k.data() })),
+            }
+          })
+        )
+        setKategorije(kats)
+
         const prices = all.map(cardMinPrice).filter(p => p > 0)
         if (prices.length) {
           const mn = Math.min(...prices); const mx = Math.max(...prices)
@@ -230,6 +249,7 @@ export default function Gallery() {
   const filtered = dekoracije.filter(d => {
     const q = search.trim().toLowerCase()
     if (q && !d.naziv.toLowerCase().includes(q)) return false
+    if (activeKat && d.kategorijaId !== activeKat) return false
     if (activeTab !== 'sve' && d.grupa !== activeTab) return false
     const cp = cardMinPrice(d)
     if (cp < priceMin || cp > priceMax) return false
@@ -237,10 +257,10 @@ export default function Gallery() {
   })
 
   const sorted = applySorting(filtered, sort)
-  const hasFilters = search.trim() || activeTab !== 'sve' || priceMin !== allMin || priceMax !== allMax
+  const hasFilters = search.trim() || activeKat !== '' || activeTab !== 'sve' || priceMin !== allMin || priceMax !== allMax
 
   function resetFilters() {
-    setSearch(''); setActiveTab('sve')
+    setSearch(''); setActiveKat(''); setActiveTab('sve')
     setPriceMin(allMin); setPriceMax(allMax)
   }
 
@@ -341,6 +361,23 @@ export default function Gallery() {
         {/* ── Filter bar ── */}
         <div className="bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col gap-2.5">
+
+            {/* ── Category dropdown row ── */}
+            {kategorije.length > 0 && (
+              <div className="flex items-center gap-2">
+                <select
+                  value={activeKat}
+                  onChange={e => { setActiveKat(e.target.value); setActiveTab('sve') }}
+                  className="h-[34px] pl-2.5 pr-7 text-xs text-gray-600 bg-white border border-gray-300 outline-none hover:border-gray-400 transition-colors appearance-none cursor-pointer"
+                  style={{ borderRadius: 4, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center', backgroundSize: '14px' }}
+                >
+                  <option value="">Kategorija</option>
+                  {kategorije.map(k => (
+                    <option key={k.id} value={k.id}>{k.naziv}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* ── H1 + results + sort row ── */}
             <div className="flex items-baseline justify-between gap-3">

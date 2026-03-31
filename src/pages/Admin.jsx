@@ -6,7 +6,7 @@ import AdminDekoracije from '../components/AdminDekoracije'
 import AdminPrijave from '../components/AdminPrijave'
 import AdminLidovi from '../components/AdminLidovi'
 import AdminLeadDetail from '../components/AdminLeadDetail'
-import AdminKolekcije from '../components/AdminKolekcije'
+import AdminKategorije from '../components/AdminKategorije'
 import DekoracijaForm from './DekoracijaForm'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
@@ -70,7 +70,7 @@ function ArrowLeftIcon({ className }) {
 // ── Nav config ──────────────────────────────────────────────────────────────
 const NAV = [
   { key: 'dekoracije', label: 'Dekoracije', Icon: SparklesIcon },
-  { key: 'kolekcije',  label: 'Kolekcije',  Icon: FolderIcon   },
+  { key: 'kategorije', label: 'Kategorije', Icon: FolderIcon   },
   { key: 'prijave',    label: 'Prijave',    Icon: InboxIcon    },
   { key: 'lidovi',     label: 'Lidovi',     Icon: UsersIcon    },
 ]
@@ -136,8 +136,8 @@ function AdminTabContent({ activeTab, selectedLead, onSelect, onBack, lidoviKey,
       <div className={activeTab === 'dekoracije' ? '' : 'hidden'}>
         <AdminDekoracije key={dekoracijeKey} />
       </div>
-      <div className={activeTab === 'kolekcije' ? '' : 'hidden'}>
-        <AdminKolekcije />
+      <div className={activeTab === 'kategorije' ? '' : 'hidden'}>
+        <AdminKategorije />
       </div>
       <div className={activeTab === 'prijave' ? '' : 'hidden'}>
         <AdminPrijave />

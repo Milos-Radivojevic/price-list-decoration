@@ -11,7 +11,7 @@ const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
 const emptyForm = {
   naziv: '', opis: '', cenaMuska: '', cenaZenska: '',
-  grupa: '', tag: '', slikeUrls: [], redosled: '',
+  kategorijaId: '', kolekcijaId: '', tag: '', slikeUrls: [], redosled: '',
 }
 
 const inputCls = (err) =>
@@ -27,7 +27,7 @@ export default function DekoracijaForm() {
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
-  const [kolekcije, setKolekcije] = useState([])
+  const [kategorije, setKategorije] = useState([])
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [urlInput, setUrlInput] = useState('')
@@ -36,14 +36,30 @@ export default function DekoracijaForm() {
     async function loadData() {
       setPageLoading(true)
       try {
-        // Load collections for dropdown
-        const kolQ = query(collection(db, 'kolekcije'), orderBy('kreirano', 'asc'))
-        const kolSnap = await getDocs(kolQ)
-        const kols = kolSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-        setKolekcije(kols)
+        // Load kategorije with subcollections
+        const katSnap = await getDocs(query(collection(db, 'kategorije'), orderBy('kreirano', 'asc')))
+        const kats = await Promise.all(
+          katSnap.docs.map(async katDoc => {
+            const kolSnap = await getDocs(
+              query(collection(db, 'kategorije', katDoc.id, 'kolekcije'), orderBy('kreirano', 'asc'))
+            )
+            return {
+              id: katDoc.id,
+              ...katDoc.data(),
+              kolekcije: kolSnap.docs.map(k => ({ id: k.id, ...k.data() })),
+            }
+          })
+        )
+        setKategorije(kats)
 
         if (isNew) {
-          setForm(f => ({ ...f, grupa: kols[0]?.slug || 'rever' }))
+          const firstKat = kats[0]
+          const firstKol = firstKat?.kolekcije[0]
+          setForm(f => ({
+            ...f,
+            kategorijaId: firstKat?.id || '',
+            kolekcijaId: firstKol?.id || '',
+          }))
           return
         }
 
@@ -56,7 +72,8 @@ export default function DekoracijaForm() {
           opis: d.opis || '',
           cenaMuska: d.cenaMuska != null ? String(d.cenaMuska) : '',
           cenaZenska: d.cenaZenska != null ? String(d.cenaZenska) : '',
-          grupa: d.grupa || kols[0]?.slug || 'rever',
+          kategorijaId: d.kategorijaId || kats[0]?.id || '',
+          kolekcijaId: d.kolekcijaId || '',
           tag: d.tag || '',
           slikeUrls: d.slikeUrls?.length ? d.slikeUrls : (d.slikaUrl ? [d.slikaUrl] : []),
           redosled: d.redosled != null ? String(d.redosled) : '',
@@ -133,12 +150,17 @@ export default function DekoracijaForm() {
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setSaving(true)
     try {
+      const selectedKat = kategorije.find(k => k.id === form.kategorijaId)
+      const selectedKol = selectedKat?.kolekcije.find(k => k.id === form.kolekcijaId)
       const data = {
         naziv: form.naziv.trim(),
         opis: form.opis.trim(),
         cenaMuska: Number(form.cenaMuska),
         cenaZenska: Number(form.cenaZenska),
-        grupa: form.grupa,
+        kategorijaId: form.kategorijaId,
+        kategorijaNaziv: selectedKat?.naziv || '',
+        kolekcijaId: form.kolekcijaId,
+        grupa: selectedKol?.slug || '',
         tag: form.tag || '',
         slikeUrls: form.slikeUrls,
         redosled: form.redosled.trim() ? Number(form.redosled) : 0,
@@ -207,20 +229,48 @@ export default function DekoracijaForm() {
               {errors.cenaZenska && <p className="text-xs text-red-500">{errors.cenaZenska}</p>}
             </div>
 
-            {/* Kolekcija */}
+            {/* Kategorija */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Kolekcija</label>
-              <select value={form.grupa}
-                onChange={e => setForm(f => ({ ...f, grupa: e.target.value }))}
+              <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Kategorija</label>
+              <select
+                value={form.kategorijaId}
+                onChange={e => {
+                  const katId = e.target.value
+                  const kat = kategorije.find(k => k.id === katId)
+                  setForm(f => ({ ...f, kategorijaId: katId, kolekcijaId: kat?.kolekcije[0]?.id || '' }))
+                }}
                 className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all appearance-none">
-                {kolekcije.length === 0 ? (
-                  <option value="rever">Rever (podrazumevano)</option>
+                {kategorije.length === 0 ? (
+                  <option value="">Nema kategorija</option>
                 ) : (
-                  kolekcije.map(k => (
-                    <option key={k.id} value={k.slug}>{k.naziv}</option>
+                  kategorije.map(k => (
+                    <option key={k.id} value={k.id}>{k.naziv}</option>
                   ))
                 )}
               </select>
+            </div>
+
+            {/* Kolekcija */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Kolekcija</label>
+              {(() => {
+                const activeKols = kategorije.find(k => k.id === form.kategorijaId)?.kolekcije || []
+                return (
+                  <select
+                    value={form.kolekcijaId}
+                    onChange={e => setForm(f => ({ ...f, kolekcijaId: e.target.value }))}
+                    disabled={activeKols.length === 0}
+                    className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all appearance-none disabled:opacity-50">
+                    {activeKols.length === 0 ? (
+                      <option value="">Nema kolekcija</option>
+                    ) : (
+                      activeKols.map(k => (
+                        <option key={k.id} value={k.id}>{k.naziv}</option>
+                      ))
+                    )}
+                  </select>
+                )
+              })()}
             </div>
 
             {/* Tag */}
