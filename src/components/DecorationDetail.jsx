@@ -191,12 +191,8 @@ export default function DecorationDetail({ decoration, onClose, onInterest }) {
         <div className="flex flex-col gap-5 p-5 md:p-6 flex-1">
           {/* Category badge + title */}
           <div>
-            <span className={`inline-block mb-2 text-xs font-semibold px-2.5 py-1 rounded-full
-              ${decoration.grupa === 'narukvica'
-                ? 'bg-sky-100 text-sky-700'
-                : 'bg-rose-100 text-rose-700'
-              }`}>
-              {decoration.grupa === 'narukvica' ? 'Narukvica' : 'Rever'}
+            <span className="inline-block mb-2 text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700">
+              {decoration.grupa ? decoration.grupa.charAt(0).toUpperCase() + decoration.grupa.slice(1) : ''}
             </span>
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-snug">
               {decoration.naziv}

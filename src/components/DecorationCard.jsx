@@ -26,12 +26,8 @@ export default function DecorationCard({ decoration, onDetail }) {
           </div>
         )}
         {/* Category badge — top left overlay */}
-        <span className={`absolute top-2 left-2 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm
-          ${decoration.grupa === 'narukvica'
-            ? 'bg-sky-500/90 text-white'
-            : 'bg-rose-500/90 text-white'
-          }`}>
-          {decoration.grupa === 'narukvica' ? 'Narukvica' : 'Rever'}
+        <span className="absolute top-2 left-2 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm bg-rose-500/90 text-white">
+          {decoration.grupa ? decoration.grupa.charAt(0).toUpperCase() + decoration.grupa.slice(1) : ''}
         </span>
       </div>
 

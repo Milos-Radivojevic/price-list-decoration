@@ -1,8 +1,31 @@
 @import "tailwindcss";
 
+@theme {
+  /* ── Dusty mauve / blush rose palette ── */
+  --color-rose-50:  #fdf5f7;
+  --color-rose-100: #f7dfe8;
+  --color-rose-200: #eebdce;
+  --color-rose-400: #c98aab;
+  --color-rose-500: #b87096;
+  --color-rose-600: #a05882;
+  --color-rose-700: #88446c;
+  --color-rose-800: #6e3358;
+
+  /* ── Sage teal (narukvica badge) ── */
+  --color-sky-50:  #f2f8f5;
+  --color-sky-100: #d6ece4;
+  --color-sky-200: #aed4c5;
+  --color-sky-500: #4e9a7d;
+  --color-sky-700: #366b57;
+
+  /* ── Warm-tinted grays ── */
+  --color-gray-50:  #faf8f6;
+  --color-gray-100: #f3eeea;
+}
+
 @layer base {
   html {
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
   }
 }
 

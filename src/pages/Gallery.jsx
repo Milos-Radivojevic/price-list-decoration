@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { db } from '../firebase'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
+
+function capitalize(str) {
+  if (!str) return ''
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
 import DecorationCard from '../components/DecorationCard'
 import DecorationDetail from '../components/DecorationDetail'
 import InterestModal from '../components/InterestModal'
@@ -89,11 +94,6 @@ function SkeletonCard() {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-const TABS = [
-  { key: 'sve',       label: 'Sve'       },
-  { key: 'rever',     label: 'Rever'     },
-  { key: 'narukvica', label: 'Narukvica' },
-]
 
 function cardMinPrice(d) {
   return Math.min(d.cenaMuska ?? 0, d.cenaZenska ?? 0)
@@ -101,6 +101,7 @@ function cardMinPrice(d) {
 
 export default function Gallery() {
   const [dekoracije, setDekoracije] = useState([])
+  const [kolekcije, setKolekcije]   = useState([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
   const [activeTab, setActiveTab]   = useState('sve')
@@ -112,14 +113,24 @@ export default function Gallery() {
   const [interestItem, setInterestItem] = useState(null)
   const [interestCalc, setInterestCalc] = useState(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [priceOpen, setPriceOpen]   = useState(false)
+
+  // Build tabs dynamically: "Sve" + one per kolekcija
+  const TABS = [
+    { key: 'sve', label: 'Sve' },
+    ...kolekcije.map(k => ({ key: k.slug, label: k.naziv })),
+  ]
 
   useEffect(() => {
     async function load() {
       try {
-        const q = query(collection(db, 'dekoracije'), orderBy('redosled', 'asc'))
-        const snap = await getDocs(q)
-        const all = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        const [dekSnap, kolSnap] = await Promise.all([
+          getDocs(query(collection(db, 'dekoracije'), orderBy('redosled', 'asc'))),
+          getDocs(query(collection(db, 'kolekcije'), orderBy('kreirano', 'asc'))),
+        ])
+        const all = dekSnap.docs.map(d => ({ id: d.id, ...d.data() }))
         setDekoracije(all)
+        setKolekcije(kolSnap.docs.map(d => ({ id: d.id, ...d.data() })))
 
         const prices = all.map(cardMinPrice).filter(p => p > 0)
         if (prices.length) {
@@ -138,7 +149,7 @@ export default function Gallery() {
   const filtered = dekoracije.filter(d => {
     const q = search.trim().toLowerCase()
     if (q && !d.naziv.toLowerCase().includes(q)) return false
-    if (activeTab !== 'sve' && (d.grupa || 'rever') !== activeTab) return false
+    if (activeTab !== 'sve' && d.grupa !== activeTab) return false
     const cp = cardMinPrice(d)
     if (cp < priceMin || cp > priceMax) return false
     return true
@@ -149,6 +160,7 @@ export default function Gallery() {
   function resetFilters() {
     setSearch(''); setActiveTab('sve')
     setPriceMin(allMin); setPriceMax(allMax)
+    setPriceOpen(false)
   }
 
   const openInterest = useCallback((dec, calcData) => {
@@ -309,9 +321,10 @@ export default function Gallery() {
               )}
             </div>
 
-            {/* Row 2: category pills + price */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex gap-1.5">
+            {/* ── Mobile filter row (< sm) ── */}
+            <div className="sm:hidden flex flex-col gap-2">
+              {/* Collection pills — wrap freely */}
+              <div className="flex flex-wrap gap-1.5">
                 {TABS.map(t => (
                   <button
                     key={t.key}
@@ -327,7 +340,65 @@ export default function Gallery() {
                 ))}
               </div>
 
-              {showPriceSlider && <div className="hidden sm:block w-px h-5 bg-gray-200" />}
+              {/* Price accordion */}
+              {showPriceSlider && (
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setPriceOpen(v => !v)}
+                    className="w-full flex items-center justify-between px-3 py-2.5 bg-white text-left"
+                  >
+                    <span className="text-xs font-medium text-gray-600">
+                      Cena:{' '}
+                      <span className={priceMin !== allMin || priceMax !== allMax ? 'text-rose-600 font-semibold' : 'text-gray-500'}>
+                        {priceMin.toLocaleString('sr-RS')} – {priceMax.toLocaleString('sr-RS')} RSD
+                      </span>
+                    </span>
+                    <svg
+                      viewBox="0 0 20 20" fill="currentColor" width="16" height="16"
+                      className={`text-gray-400 shrink-0 transition-transform duration-200 ${priceOpen ? 'rotate-180' : ''}`}
+                    >
+                      <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  {priceOpen && (
+                    <div className="px-4 pb-3 pt-1 bg-gray-50 border-t border-gray-200">
+                      <DualSlider
+                        min={allMin} max={allMax}
+                        low={priceMin} high={priceMax}
+                        onLow={setPriceMin} onHigh={setPriceMax}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {hasFilters && (
+                <button onClick={resetFilters}
+                  className="text-xs text-rose-600 hover:text-rose-800 font-medium transition-colors text-left">
+                  Poništi filtere
+                </button>
+              )}
+            </div>
+
+            {/* ── Desktop filter row (sm+) ── */}
+            <div className="hidden sm:flex items-center gap-3">
+              <div className="flex gap-1.5 flex-wrap">
+                {TABS.map(t => (
+                  <button
+                    key={t.key}
+                    onClick={() => setActiveTab(t.key)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all
+                      ${activeTab === t.key
+                        ? 'bg-rose-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {showPriceSlider && <div className="w-px h-5 bg-gray-200 shrink-0" />}
 
               {showPriceSlider && (
                 <div className="flex-1 min-w-[180px] max-w-xs">

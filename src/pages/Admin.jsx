@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { auth } from '../firebase'
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
 import AdminDekoracije from '../components/AdminDekoracije'
 import AdminPrijave from '../components/AdminPrijave'
 import AdminLidovi from '../components/AdminLidovi'
 import AdminLeadDetail from '../components/AdminLeadDetail'
+import AdminKolekcije from '../components/AdminKolekcije'
+import DekoracijaForm from './DekoracijaForm'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 function SparklesIcon({ className }) {
@@ -49,19 +52,35 @@ function UsersIcon({ className }) {
     </svg>
   )
 }
+function FolderIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+    </svg>
+  )
+}
+function ArrowLeftIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+    </svg>
+  )
+}
 
 // ── Nav config ──────────────────────────────────────────────────────────────
 const NAV = [
   { key: 'dekoracije', label: 'Dekoracije', Icon: SparklesIcon },
+  { key: 'kolekcije',  label: 'Kolekcije',  Icon: FolderIcon   },
   { key: 'prijave',    label: 'Prijave',    Icon: InboxIcon    },
   { key: 'lidovi',     label: 'Lidovi',     Icon: UsersIcon    },
 ]
 
-// ── Sidebar content (shared between desktop and mobile) ─────────────────────
-function SidebarContent({ user, activeTab, onNav, onLogout }) {
+// ── Sidebar ─────────────────────────────────────────────────────────────────
+function SidebarContent({ user, activeTab, location, onNav, onLogout }) {
+  const onFormRoute = location.pathname.includes('/dekoracije/')
+
   return (
     <div className="flex flex-col h-full">
-      {/* Brand */}
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center shrink-0">
@@ -74,25 +93,28 @@ function SidebarContent({ user, activeTab, onNav, onLogout }) {
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-3 flex flex-col gap-0.5 overflow-y-auto">
-        {NAV.map(({ key, label, Icon }) => (
-          <button
-            key={key}
-            onClick={() => onNav(key)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-left
-              ${activeTab === key
-                ? 'bg-rose-50 text-rose-700'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-          >
-            <Icon className="w-5 h-5 shrink-0" />
-            {label}
-          </button>
-        ))}
+        {NAV.map(({ key, label, Icon }) => {
+          const isActive = key === 'dekoracije'
+            ? (activeTab === key || onFormRoute)
+            : activeTab === key
+          return (
+            <button
+              key={key}
+              onClick={() => onNav(key)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-left
+                ${isActive
+                  ? 'bg-rose-50 text-rose-700'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+            >
+              <Icon className="w-5 h-5 shrink-0" />
+              {label}
+            </button>
+          )
+        })}
       </nav>
 
-      {/* Footer: user + logout */}
       <div className="p-4 border-t border-gray-100">
         <p className="text-xs text-gray-400 truncate mb-3">{user.email}</p>
         <button
@@ -107,15 +129,42 @@ function SidebarContent({ user, activeTab, onNav, onLogout }) {
   )
 }
 
+// ── Tab content ─────────────────────────────────────────────────────────────
+function AdminTabContent({ activeTab, selectedLead, onSelect, onBack, lidoviKey, dekoracijeKey }) {
+  return (
+    <>
+      <div className={activeTab === 'dekoracije' ? '' : 'hidden'}>
+        <AdminDekoracije key={dekoracijeKey} />
+      </div>
+      <div className={activeTab === 'kolekcije' ? '' : 'hidden'}>
+        <AdminKolekcije />
+      </div>
+      <div className={activeTab === 'prijave' ? '' : 'hidden'}>
+        <AdminPrijave />
+      </div>
+      <div className={activeTab === 'lidovi' ? '' : 'hidden'}>
+        {selectedLead ? (
+          <AdminLeadDetail key={selectedLead.id} lead={selectedLead} onBack={onBack} />
+        ) : (
+          <AdminLidovi key={lidoviKey} onSelect={onSelect} />
+        )}
+      </div>
+    </>
+  )
+}
+
 // ── Main component ───────────────────────────────────────────────────────────
 export default function Admin() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
   const [user, setUser] = useState(undefined)
   const [activeTab, setActiveTab] = useState('dekoracije')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState(null)
   const [lidoviKey, setLidoviKey] = useState(0)
+  const [dekoracijeKey, setDekoracijeKey] = useState(0)
 
-  // Login form state
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError]     = useState('')
@@ -126,12 +175,22 @@ export default function Admin() {
     return unsub
   }, [])
 
-  // Close mobile sidebar on lg+
   useEffect(() => {
     function onResize() { if (window.innerWidth >= 1024) setSidebarOpen(false) }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  // When navigating back from a form route to the index, refresh the dekoracije list
+  const prevPathRef = useRef(location.pathname)
+  useEffect(() => {
+    const prev = prevPathRef.current
+    const curr = location.pathname
+    const wasForm = prev.includes('/dekoracije/')
+    const nowRoot = curr === '/admin' || curr === '/admin/'
+    if (wasForm && nowRoot) setDekoracijeKey(k => k + 1)
+    prevPathRef.current = curr
+  }, [location.pathname])
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -149,21 +208,27 @@ export default function Admin() {
     setActiveTab(key)
     setSelectedLead(null)
     setSidebarOpen(false)
+    navigate('/admin')
   }
 
-  function handleSelectLead(lead) {
-    setSelectedLead(lead)
-  }
-
+  function handleSelectLead(lead) { setSelectedLead(lead) }
   function handleBackFromLead() {
     setSelectedLead(null)
     setLidoviKey(k => k + 1)
   }
 
-  const inputCls = "w-full px-3.5 py-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all"
-  const currentLabel = activeTab === 'lidovi' && selectedLead
+  // Determine header title from current route
+  const onFormRoute = location.pathname.includes('/dekoracije/')
+  const isNewForm   = location.pathname.endsWith('/dekoracije/nova')
+  const headerTitle = isNewForm
+    ? 'Nova dekoracija'
+    : onFormRoute
+    ? 'Izmeni dekoraciju'
+    : activeTab === 'lidovi' && selectedLead
     ? selectedLead.ime
     : NAV.find(n => n.key === activeTab)?.label ?? ''
+
+  const inputCls = "w-full px-3.5 py-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all"
 
   // ── Loading ──
   if (user === undefined) {
@@ -214,25 +279,24 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
 
-      {/* ── Desktop sidebar (lg+) ── */}
+      {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 fixed inset-y-0 left-0 z-30">
         <SidebarContent
           user={user}
           activeTab={activeTab}
+          location={location}
           onNav={handleNav}
           onLogout={() => signOut(auth)}
         />
       </aside>
 
-      {/* ── Mobile sidebar overlay ── */}
+      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-40 flex">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 transition-opacity"
             onClick={() => setSidebarOpen(false)}
           />
-          {/* Drawer */}
           <aside className="relative w-64 bg-white shadow-xl flex flex-col h-full">
             <button
               onClick={() => setSidebarOpen(false)}
@@ -244,6 +308,7 @@ export default function Admin() {
             <SidebarContent
               user={user}
               activeTab={activeTab}
+              location={location}
               onNav={handleNav}
               onLogout={() => signOut(auth)}
             />
@@ -251,12 +316,11 @@ export default function Admin() {
         </div>
       )}
 
-      {/* ── Main area ── */}
+      {/* Main area */}
       <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
 
-        {/* Top header */}
+        {/* Header */}
         <header className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 sm:px-6 py-3.5 flex items-center gap-3">
-          {/* Hamburger (mobile only) */}
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-1.5 -ml-1 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all"
@@ -265,31 +329,37 @@ export default function Admin() {
             <BarsIcon className="w-5 h-5" />
           </button>
 
-          <h2 className="text-base font-semibold text-gray-900">{currentLabel}</h2>
+          {/* Back button when on form routes */}
+          {onFormRoute && (
+            <button
+              onClick={() => { setActiveTab('dekoracije'); navigate('/admin') }}
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors -ml-1 mr-1"
+              aria-label="Nazad"
+            >
+              <ArrowLeftIcon className="w-4 h-4" />
+              <span className="hidden sm:inline text-xs font-medium">Nazad</span>
+            </button>
+          )}
+
+          <h2 className="text-base font-semibold text-gray-900">{headerTitle}</h2>
         </header>
 
         {/* Page content */}
         <main className="flex-1 p-4 sm:p-6 pb-16 max-w-5xl w-full mx-auto">
-          <div className={activeTab === 'dekoracije' ? '' : 'hidden'}>
-            <AdminDekoracije />
-          </div>
-          <div className={activeTab === 'prijave' ? '' : 'hidden'}>
-            <AdminPrijave />
-          </div>
-          <div className={activeTab === 'lidovi' ? '' : 'hidden'}>
-            {selectedLead ? (
-              <AdminLeadDetail
-                key={selectedLead.id}
-                lead={selectedLead}
-                onBack={handleBackFromLead}
-              />
-            ) : (
-              <AdminLidovi
-                key={lidoviKey}
+          <Routes>
+            <Route index element={
+              <AdminTabContent
+                activeTab={activeTab}
+                selectedLead={selectedLead}
                 onSelect={handleSelectLead}
+                onBack={handleBackFromLead}
+                lidoviKey={lidoviKey}
+                dekoracijeKey={dekoracijeKey}
               />
-            )}
-          </div>
+            } />
+            <Route path="dekoracije/nova" element={<DekoracijaForm />} />
+            <Route path="dekoracije/:id"  element={<DekoracijaForm />} />
+          </Routes>
         </main>
       </div>
     </div>
