@@ -16,9 +16,11 @@ const TAG_LABELS = {
 export default function DecorationCard({ decoration, onDetail }) {
   const cover = getImages(decoration)[0]
   const tag = decoration.tag && TAG_STYLES[decoration.tag] ? decoration.tag : null
-  const grpLabel = decoration.grupa
-    ? decoration.grupa.charAt(0).toUpperCase() + decoration.grupa.slice(1)
-    : ''
+  const kolLabel = decoration.kategorijaNaziv
+    ? decoration.kategorijaNaziv
+    : decoration.grupa
+      ? decoration.grupa.charAt(0).toUpperCase() + decoration.grupa.slice(1)
+      : ''
 
   return (
     <div
@@ -26,7 +28,7 @@ export default function DecorationCard({ decoration, onDetail }) {
       onClick={() => onDetail(decoration)}
     >
       {/* Image */}
-      <div className="relative aspect-square sm:aspect-[4/3] overflow-hidden bg-gray-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
         {cover ? (
           <img
             src={cover}
@@ -38,7 +40,6 @@ export default function DecorationCard({ decoration, onDetail }) {
             Nema slike
           </div>
         )}
-        {/* Tag badge (Novo / Akcija) — replaces collection badge on image */}
         {tag && (
           <span className={`absolute top-2 left-2 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm ${TAG_STYLES[tag]}`}>
             {TAG_LABELS[tag]}
@@ -47,28 +48,29 @@ export default function DecorationCard({ decoration, onDetail }) {
       </div>
 
       {/* Body */}
-      <div className="p-2.5 sm:p-3.5 flex flex-col gap-1 flex-1">
-        {/* Title + collection label inline */}
-        <div className="flex items-start gap-1.5">
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 leading-snug line-clamp-2 flex-1">
+      <div className="p-3 sm:p-4 flex flex-col gap-2.5 flex-1">
+        {/* Title + collection badge */}
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-sm sm:text-[15px] font-semibold text-gray-900 leading-snug line-clamp-2 flex-1">
             {decoration.naziv}
           </h3>
-          {grpLabel && (
-            <span className="shrink-0 text-[9px] sm:text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded mt-0.5 leading-tight">
-              {grpLabel}
+          {kolLabel && (
+            <span className="shrink-0 text-[10px] sm:text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded mt-0.5 leading-tight whitespace-nowrap">
+              {kolLabel}
             </span>
           )}
         </div>
 
-        <div className="flex flex-col gap-0.5 mt-auto pt-1">
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] sm:text-[11px] text-gray-400">Muška</span>
+        {/* Prices */}
+        <div className="flex flex-col gap-1 mt-auto">
+          <div className="flex items-center justify-between">
+            <span className="text-xs sm:text-sm text-gray-500">Muška</span>
             <span className="text-xs sm:text-sm font-bold text-rose-600">
               {(decoration.cenaMuska ?? 0).toLocaleString('sr-RS')} RSD
             </span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] sm:text-[11px] text-gray-400">Ženska</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs sm:text-sm text-gray-500">Ženska</span>
             <span className="text-xs sm:text-sm font-bold text-rose-600">
               {(decoration.cenaZenska ?? 0).toLocaleString('sr-RS')} RSD
             </span>

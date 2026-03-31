@@ -360,55 +360,23 @@ export default function Gallery() {
 
         {/* ── Filter bar ── */}
         <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col gap-2.5">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3">
 
-            {/* ── Category dropdown row ── */}
-            {kategorije.length > 0 && (
-              <div className="flex items-center gap-2">
-                <select
-                  value={activeKat}
-                  onChange={e => { setActiveKat(e.target.value); setActiveTab('sve') }}
-                  className="h-[34px] pl-2.5 pr-7 text-xs text-gray-600 bg-white border border-gray-300 outline-none hover:border-gray-400 transition-colors appearance-none cursor-pointer"
-                  style={{ borderRadius: 4, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center', backgroundSize: '14px' }}
-                >
-                  <option value="">Kategorija</option>
-                  {kategorije.map(k => (
-                    <option key={k.id} value={k.id}>{k.naziv}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* ── H1 + results + sort row ── */}
-            <div className="flex items-baseline justify-between gap-3">
-              <div className="flex items-baseline gap-3 min-w-0">
-                <h1 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight shrink-0">
-                  Cvetići za kićenje svatova
-                </h1>
-                {!loading && (
-                  <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">
-                    {sorted.length} {sorted.length === 1 ? 'rezultat' : 'rezultata'}
-                  </span>
-                )}
-              </div>
-
-              {/* Sort dropdown */}
-              <div className="shrink-0">
-                <select
-                  value={sort}
-                  onChange={e => setSort(e.target.value)}
-                  className="h-[34px] pl-2.5 pr-7 text-xs text-gray-600 bg-white border border-gray-300 outline-none hover:border-gray-400 transition-colors appearance-none cursor-pointer"
-                  style={{ borderRadius: 4, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center', backgroundSize: '14px' }}
-                >
-                  {SORT_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* ── Single filter row (desktop sm+) ── */}
+            {/* ── Desktop single row (sm+) ── */}
             <div className="hidden sm:flex items-center gap-2">
+              {/* Kategorija dropdown */}
+              <select
+                value={activeKat}
+                onChange={e => { setActiveKat(e.target.value); setActiveTab('sve') }}
+                className="h-[34px] pl-2.5 pr-7 text-xs text-gray-600 bg-white border border-gray-300 outline-none hover:border-gray-400 transition-colors appearance-none cursor-pointer shrink-0"
+                style={{ borderRadius: 4, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center', backgroundSize: '14px' }}
+              >
+                <option value="">Kategorija</option>
+                {kategorije.map(k => (
+                  <option key={k.id} value={k.id}>{k.naziv}</option>
+                ))}
+              </select>
+
               {/* Search */}
               <div className="relative flex-1 min-w-0">
                 <svg viewBox="0 0 20 20" fill="currentColor"
@@ -432,7 +400,7 @@ export default function Gallery() {
               </div>
 
               {/* Collection tabs */}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center">
                 {TABS.map((t, i) => (
                   <button
                     key={t.key}
@@ -466,7 +434,7 @@ export default function Gallery() {
               )}
             </div>
 
-            {/* ── Mobile filter row (< sm) ── */}
+            {/* ── Mobile filter rows (< sm) ── */}
             <div className="sm:hidden flex flex-col gap-2">
               {/* Search */}
               <div className="relative">
@@ -490,9 +458,22 @@ export default function Gallery() {
                 )}
               </div>
 
-              {/* Collection tabs + price in one row */}
+              {/* Category + tabs + price scroll row */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-                {TABS.map((t, i) => (
+                {kategorije.length > 0 && (
+                  <select
+                    value={activeKat}
+                    onChange={e => { setActiveKat(e.target.value); setActiveTab('sve') }}
+                    className="h-[34px] pl-2.5 pr-6 text-xs text-gray-600 bg-white border border-gray-300 outline-none appearance-none cursor-pointer shrink-0"
+                    style={{ borderRadius: 4, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center', backgroundSize: '12px' }}
+                  >
+                    <option value="">Kategorija</option>
+                    {kategorije.map(k => (
+                      <option key={k.id} value={k.id}>{k.naziv}</option>
+                    ))}
+                  </select>
+                )}
+                {TABS.map((t) => (
                   <button
                     key={t.key}
                     onClick={() => setActiveTab(t.key)}
@@ -502,7 +483,6 @@ export default function Gallery() {
                     {t.label}
                   </button>
                 ))}
-
                 {showPriceDropdown && (
                   <PriceDropdown
                     allMin={allMin} allMax={allMax}
@@ -525,7 +505,31 @@ export default function Gallery() {
       </div>
 
       {/* ── Gallery grid ── */}
-      <main id="proizvodi" className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-24">
+      <main id="proizvodi" className="max-w-6xl mx-auto px-4 sm:px-6 pb-24">
+
+        {/* H1 + results + sort row */}
+        <div className="flex items-center justify-between py-5 sm:py-6">
+          <div className="flex items-baseline gap-3">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">
+              Cvetići za kićenje svatova
+            </h1>
+            {!loading && (
+              <span className="text-sm text-gray-400">
+                {sorted.length} {sorted.length === 1 ? 'rezultat' : 'rezultata'}
+              </span>
+            )}
+          </div>
+          <select
+            value={sort}
+            onChange={e => setSort(e.target.value)}
+            className="h-[36px] pl-3 pr-8 text-sm text-gray-700 bg-white border border-gray-300 outline-none hover:border-gray-400 transition-colors appearance-none cursor-pointer rounded-lg"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '14px' }}
+          >
+            {SORT_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
