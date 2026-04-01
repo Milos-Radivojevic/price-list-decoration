@@ -10,7 +10,9 @@ function DualSlider({ min, max, low, high, onLow, onHigh }) {
   const trackRef = useRef(null)
   const dragging = useRef(null)
 
-  if (min >= max) return null
+  if (min >= max) return (
+    <p className="text-xs text-gray-400 text-center py-1">Sve dekoracije imaju istu cenu</p>
+  )
   const range = max - min
   const pLow  = ((low  - min) / range) * 100
   const pHigh = ((high - min) / range) * 100
@@ -272,7 +274,7 @@ export default function Gallery() {
     setInterestItem(dec); setInterestCalc(calcData ?? null)
   }, [])
 
-  const showPriceDropdown = allMax > allMin
+  const showPriceDropdown = allMax > 0
 
   // Shared pill style
   const pillCls = (active) =>
