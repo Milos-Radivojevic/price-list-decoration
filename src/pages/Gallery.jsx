@@ -201,9 +201,13 @@ export default function Gallery() {
   const [interestCalc, setInterestCalc] = useState(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const visibleKols = activeKat
+  // Only show collection tabs for collections that have at least one decoration
+  const usedGrupe = new Set(dekoracije.map(d => d.grupa).filter(Boolean))
+
+  const visibleKols = (activeKat
     ? (kategorije.find(k => k.id === activeKat)?.kolekcije || [])
     : kategorije.flatMap(k => k.kolekcije)
+  ).filter(k => usedGrupe.has(k.slug))
 
   const TABS = [
     { key: 'sve', label: 'Sve' },

@@ -21,10 +21,11 @@ const inputCls = (err) =>
 export default function DekoracijaForm() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const isNew = id === 'nova'
+  const isNew = !id || id === 'nova'
 
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
+  const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
   const [kategorije, setKategorije] = useState([])
@@ -53,14 +54,7 @@ export default function DekoracijaForm() {
         setKategorije(kats)
 
         if (isNew) {
-          const firstKat = kats[0]
-          const firstKol = firstKat?.kolekcije[0]
-          setForm(f => ({
-            ...f,
-            kategorijaId: firstKat?.id || '',
-            kolekcijaId: firstKol?.id || '',
-          }))
-          return
+          return  // leave emptyForm as-is; user picks category/collection
         }
 
         // Load existing decoration
@@ -146,37 +140,44 @@ export default function DekoracijaForm() {
 
   async function handleSave(e) {
     e.preventDefault()
+    setSaveError('')
+    setErrors({})
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setSaving(true)
     try {
       const selectedKat = kategorije.find(k => k.id === form.kategorijaId)
-      const selectedKol = selectedKat?.kolekcije.find(k => k.id === form.kolekcijaId)
+      const selectedKol = selectedKat?.kolekcije?.find(k => k.id === form.kolekcijaId)
       const data = {
-        naziv: form.naziv.trim(),
-        opis: form.opis.trim(),
-        cenaMuska: Number(form.cenaMuska),
-        cenaZenska: Number(form.cenaZenska),
-        kategorijaId: form.kategorijaId,
+        naziv: (form.naziv || '').trim(),
+        opis: (form.opis || '').trim(),
+        cenaMuska: Number(form.cenaMuska) || 0,
+        cenaZenska: Number(form.cenaZenska) || 0,
+        kategorijaId: form.kategorijaId || '',
         kategorijaNaziv: selectedKat?.naziv || '',
-        kolekcijaId: form.kolekcijaId,
+        kolekcijaId: form.kolekcijaId || '',
+        kolekcijaNaziv: selectedKol?.naziv || '',
         grupa: selectedKol?.slug || '',
         tag: form.tag || '',
-        slikeUrls: form.slikeUrls,
-        redosled: form.redosled.trim() ? Number(form.redosled) : 0,
+        slikeUrls: Array.isArray(form.slikeUrls) ? form.slikeUrls : [],
+        redosled: (form.redosled || '').trim() ? Number(form.redosled) : 0,
       }
       if (isNew) {
         await addDoc(collection(db, 'dekoracije'), { ...data, kreirano: serverTimestamp() })
       } else {
         await updateDoc(doc(db, 'dekoracije', id), { ...data, slikaUrl: deleteField() })
       }
-      navigate('/admin')
+      navigate('/admin', { state: { saved: true } })
+    } catch (err) {
+      setSaveError(`Greška: ${err?.code || err?.message || JSON.stringify(err)}`)
+      console.error('Save error:', err)
     } finally {
       setSaving(false)
     }
   }
 
   const canAddMore = form.slikeUrls.length < 5
+  const activeKols = kategorije.find(k => k.id === form.kategorijaId)?.kolekcije || []
 
   if (pageLoading) {
     return (
@@ -236,42 +237,37 @@ export default function DekoracijaForm() {
                 value={form.kategorijaId}
                 onChange={e => {
                   const katId = e.target.value
-                  const kat = kategorije.find(k => k.id === katId)
-                  setForm(f => ({ ...f, kategorijaId: katId, kolekcijaId: kat?.kolekcije[0]?.id || '' }))
+                  setForm(f => ({ ...f, kategorijaId: katId, kolekcijaId: '' }))
                 }}
                 className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all appearance-none">
-                {kategorije.length === 0 ? (
-                  <option value="">Nema kategorija</option>
-                ) : (
-                  kategorije.map(k => (
-                    <option key={k.id} value={k.id}>{k.naziv}</option>
-                  ))
-                )}
+                <option value="" disabled>Izaberi</option>
+                {kategorije.map(k => (
+                  <option key={k.id} value={k.id}>{k.naziv}</option>
+                ))}
               </select>
             </div>
 
-            {/* Kolekcija */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Kolekcija</label>
-              {(() => {
-                const activeKols = kategorije.find(k => k.id === form.kategorijaId)?.kolekcije || []
-                return (
+            {/* Kolekcija — only shown after a category is selected */}
+            {form.kategorijaId && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Kolekcija</label>
+                {activeKols.length === 0 ? (
+                  <p className="text-xs text-amber-600 py-2">
+                    Ova kategorija nema kolekcija. Dodajte ih u admin panelu pod „Kategorije".
+                  </p>
+                ) : (
                   <select
                     value={form.kolekcijaId}
                     onChange={e => setForm(f => ({ ...f, kolekcijaId: e.target.value }))}
-                    disabled={activeKols.length === 0}
-                    className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all appearance-none disabled:opacity-50">
-                    {activeKols.length === 0 ? (
-                      <option value="">Nema kolekcija</option>
-                    ) : (
-                      activeKols.map(k => (
-                        <option key={k.id} value={k.id}>{k.naziv}</option>
-                      ))
-                    )}
+                    className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all appearance-none">
+                    <option value="" disabled>Izaberi</option>
+                    {activeKols.map(k => (
+                      <option key={k.id} value={k.id}>{k.naziv}</option>
+                    ))}
                   </select>
-                )
-              })()}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Tag */}
             <div className="flex flex-col gap-1.5">
@@ -383,15 +379,20 @@ export default function DekoracijaForm() {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-            <button type="button" onClick={() => navigate('/admin')}
-              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 hover:border-gray-400 rounded-xl transition-all">
-              Otkaži
-            </button>
-            <button type="submit" disabled={saving}
-              className="px-6 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors">
-              {saving ? 'Čuvanje...' : (isNew ? 'Dodaj dekoraciju' : 'Sačuvaj izmene')}
-            </button>
+          <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
+            {saveError && (
+              <p className="text-xs text-red-500 text-right">{saveError}</p>
+            )}
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => navigate('/admin')}
+                className="px-4 py-2 text-sm text-gray-600 border border-gray-300 hover:border-gray-400 rounded-xl transition-all">
+                Otkaži
+              </button>
+              <button type="submit" disabled={saving}
+                className="px-6 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors">
+                {saving ? 'Čuvanje...' : (isNew ? 'Dodaj dekoraciju' : 'Sačuvaj izmene')}
+              </button>
+            </div>
           </div>
         </div>
       </form>

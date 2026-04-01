@@ -169,6 +169,7 @@ export default function Admin() {
   const [password, setPassword] = useState('')
   const [loginError, setLoginError]     = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
+  const [toast, setToast] = useState('')
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, u => setUser(u || null))
@@ -191,6 +192,15 @@ export default function Admin() {
     if (wasForm && nowRoot) setDekoracijeKey(k => k + 1)
     prevPathRef.current = curr
   }, [location.pathname])
+
+  // Show toast after successful save
+  useEffect(() => {
+    if (!location.state?.saved) return
+    setToast('Dekoracija je uspešno sačuvana.')
+    navigate(location.pathname, { replace: true, state: {} })
+    const t = setTimeout(() => setToast(''), 3000)
+    return () => clearTimeout(t)
+  }, [location.state?.saved])
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -313,6 +323,13 @@ export default function Admin() {
               onLogout={() => signOut(auth)}
             />
           </aside>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg whitespace-nowrap">
+          {toast}
         </div>
       )}
 

@@ -16,11 +16,10 @@ const TAG_LABELS = {
 export default function DecorationCard({ decoration, onDetail }) {
   const cover = getImages(decoration)[0]
   const tag = decoration.tag && TAG_STYLES[decoration.tag] ? decoration.tag : null
-  const kolLabel = decoration.kategorijaNaziv
-    ? decoration.kategorijaNaziv
-    : decoration.grupa
+  const kolLabel = decoration.kolekcijaNaziv
+    || (decoration.grupa
       ? decoration.grupa.charAt(0).toUpperCase() + decoration.grupa.slice(1)
-      : ''
+      : '')
 
   return (
     <div
