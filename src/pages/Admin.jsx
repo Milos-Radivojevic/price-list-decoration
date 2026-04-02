@@ -17,6 +17,26 @@ function SparklesIcon({ className }) {
     </svg>
   )
 }
+function ArchIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="1.5" y1="22.5" x2="22.5" y2="22.5"/>
+      <line x1="6" y1="22.5" x2="6" y2="12"/>
+      <line x1="18" y1="22.5" x2="18" y2="12"/>
+      <path d="M6 12 A6 6 0 0 1 18 12"/>
+      <circle cx="14.5" cy="17" r="2.3"/>
+      <circle cx="2.5" cy="20" r="2"/>
+      <circle cx="4.5" cy="18.5" r="2"/>
+      <circle cx="2" cy="18" r="1.8"/>
+      <circle cx="2.5" cy="14.5" r="1.8"/>
+      <circle cx="4.5" cy="13" r="1.8"/>
+      <circle cx="2" cy="13" r="1.6"/>
+      <circle cx="3.5" cy="9.5" r="1.7"/>
+      <circle cx="6" cy="8" r="1.7"/>
+      <circle cx="3" cy="8.5" r="1.5"/>
+    </svg>
+  )
+}
 function InboxIcon({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -84,7 +104,7 @@ function SidebarContent({ user, activeTab, location, onNav, onLogout }) {
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center shrink-0">
-            <SparklesIcon className="w-4 h-4 text-white" />
+            <ArchIcon className="w-4 h-4 text-white" />
           </div>
           <div>
             <p className="text-sm font-bold text-gray-900 leading-tight">Dekoracije</p>
@@ -256,7 +276,7 @@ export default function Admin() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-7 sm:p-9 w-full max-w-sm">
           <div className="flex items-center gap-2.5 mb-6">
             <div className="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center shrink-0">
-              <SparklesIcon className="w-5 h-5 text-white" />
+              <ArchIcon className="w-5 h-5 text-white" />
             </div>
             <div>
               <h1 className="text-base font-bold text-gray-900 leading-tight">Admin pristup</h1>
