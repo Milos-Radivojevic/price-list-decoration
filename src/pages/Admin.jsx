@@ -102,15 +102,8 @@ function SidebarContent({ user, activeTab, location, onNav, onLogout }) {
   return (
     <div className="flex flex-col h-full">
       <div className="px-5 py-5 border-b border-gray-100">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center shrink-0">
-            <ArchIcon className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-900 leading-tight">Dekoracije</p>
-            <p className="text-[11px] text-gray-400 leading-tight">Admin panel</p>
-          </div>
-        </div>
+        <img src="/logo.png" alt="Cvetići" className="h-9 w-auto object-contain" />
+        <p className="text-[11px] text-gray-400 mt-1">Admin panel</p>
       </div>
 
       <nav className="flex-1 p-3 flex flex-col gap-0.5 overflow-y-auto">
@@ -274,10 +267,8 @@ export default function Admin() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-7 sm:p-9 w-full max-w-sm">
-          <div className="flex items-center gap-2.5 mb-6">
-            <div className="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center shrink-0">
-              <ArchIcon className="w-5 h-5 text-white" />
-            </div>
+          <div className="flex flex-col gap-3 mb-6">
+            <img src="/logo.png" alt="Cvetići" className="h-10 w-auto object-contain" />
             <div>
               <h1 className="text-base font-bold text-gray-900 leading-tight">Admin pristup</h1>
               <p className="text-xs text-gray-400 leading-tight">Prijavite se da upravljate sadržajem</p>
