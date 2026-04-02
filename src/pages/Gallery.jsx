@@ -240,7 +240,7 @@ export default function Gallery() {
         )
         setKategorije(kats)
 
-        const prices = all.map(cardMinPrice).filter(p => p > 0)
+        const prices = all.flatMap(d => [d.cenaMuska ?? 0, d.cenaZenska ?? 0]).filter(p => p > 0)
         if (prices.length) {
           const mn = Math.min(...prices); const mx = Math.max(...prices)
           setAllMin(mn); setAllMax(mx); setPriceMin(mn); setPriceMax(mx)
