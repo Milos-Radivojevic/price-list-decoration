@@ -295,25 +295,23 @@ export default function Gallery() {
             <div className="flex items-center justify-between h-14 sm:h-16">
 
               {/* Logo */}
-              <div className="flex items-center gap-2.5 shrink-0">
-                <div className="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]">
-                    <line x1="1.5" y1="22.5" x2="22.5" y2="22.5"/>
-                    <line x1="6" y1="22.5" x2="6" y2="12"/>
-                    <line x1="18" y1="22.5" x2="18" y2="12"/>
-                    <path d="M6 12 A6 6 0 0 1 18 12"/>
-                    <circle cx="14.5" cy="17" r="2.3"/>
-                    <circle cx="2.5" cy="20" r="2"/>
-                    <circle cx="4.5" cy="18.5" r="2"/>
-                    <circle cx="2" cy="18" r="1.8"/>
-                    <circle cx="2.5" cy="14.5" r="1.8"/>
-                    <circle cx="4.5" cy="13" r="1.8"/>
-                    <circle cx="2" cy="13" r="1.6"/>
-                    <circle cx="3.5" cy="9.5" r="1.7"/>
-                    <circle cx="6" cy="8" r="1.7"/>
-                    <circle cx="3" cy="8.5" r="1.5"/>
-                  </svg>
-                </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 shrink-0">
+                  <line x1="1.5" y1="22.5" x2="22.5" y2="22.5"/>
+                  <line x1="6" y1="22.5" x2="6" y2="12"/>
+                  <line x1="18" y1="22.5" x2="18" y2="12"/>
+                  <path d="M6 12 A6 6 0 0 1 18 12"/>
+                  <circle cx="14.5" cy="17" r="2.3"/>
+                  <circle cx="2.5" cy="20" r="2"/>
+                  <circle cx="4.5" cy="18.5" r="2"/>
+                  <circle cx="2" cy="18" r="1.8"/>
+                  <circle cx="2.5" cy="14.5" r="1.8"/>
+                  <circle cx="4.5" cy="13" r="1.8"/>
+                  <circle cx="2" cy="13" r="1.6"/>
+                  <circle cx="3.5" cy="9.5" r="1.7"/>
+                  <circle cx="6" cy="8" r="1.7"/>
+                  <circle cx="3" cy="8.5" r="1.5"/>
+                </svg>
                 <span className="text-base font-bold text-gray-900 tracking-tight">Cvetići</span>
               </div>
 
