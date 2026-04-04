@@ -15,6 +15,7 @@ export default function Footer() {
             <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-4">Navigacija</h4>
             <ul className="flex flex-col gap-2.5">
               <li><Link to="/" className="text-xs text-gray-500 hover:text-rose-600 transition-colors">Početna</Link></li>
+              <li><Link to="/proizvodi" className="text-xs text-gray-500 hover:text-rose-600 transition-colors">Proizvodi</Link></li>
               <li><Link to="/kontakt" className="text-xs text-gray-500 hover:text-rose-600 transition-colors">Kontakt</Link></li>
             </ul>
           </div>

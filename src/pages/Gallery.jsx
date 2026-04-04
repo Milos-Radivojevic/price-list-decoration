@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { db } from '../firebase'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import DecorationCard from '../components/DecorationCard'
@@ -189,10 +189,11 @@ function applySorting(list, sort) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Gallery() {
+  const location = useLocation()
   const [dekoracije, setDekoracije]   = useState([])
   const [kategorije, setKategorije]   = useState([])
   const [loading, setLoading]         = useState(true)
-  const [search, setSearch]           = useState('')
+  const [search, setSearch]           = useState(location.state?.initialSearch || '')
   const [activeKat, setActiveKat]     = useState('')
   const [activeTab, setActiveTab]     = useState('sve')
   const [priceMin, setPriceMin]       = useState(0)
