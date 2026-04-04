@@ -173,10 +173,10 @@ export default function Home() {
   }
 
   const inputCls = (field) =>
-    'w-full px-3 py-2.5 text-sm rounded-lg border bg-gray-100 focus:bg-white focus:outline-none focus:ring-2 transition-colors ' +
+    'w-full px-3 py-2.5 text-sm text-gray-900 bg-white rounded-lg outline-none focus:ring-2 transition-all border ' +
     (errors[field]
       ? 'border-red-400 ring-1 ring-red-200'
-      : 'border-gray-200 focus:border-rose-400 focus:ring-rose-100')
+      : 'border-gray-300 focus:border-rose-400 focus:ring-rose-100')
 
   return (
     <div className="min-h-screen bg-white font-sans">
