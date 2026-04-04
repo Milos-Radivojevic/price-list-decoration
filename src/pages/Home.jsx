@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { db } from '../firebase'
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore'
 import Footer from '../components/Footer'
+import Header from '../components/Header'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -180,25 +181,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white font-sans">
 
-      {/* ── Navigation ─────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14 sm:h-16">
-            <Link to="/" className="flex items-center gap-2.5 shrink-0">
-              <img src="/logo.png" alt="Cvetići" className="h-8 w-auto" />
-              <span className="font-semibold text-gray-900 text-sm sm:text-base">Cvetići</span>
-            </Link>
-            <nav className="flex items-center gap-1">
-              <Link to="/proizvodi" className="text-sm text-gray-600 hover:text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors">
-                Dekoracije
-              </Link>
-              <Link to="/kontakt" className="text-sm text-gray-600 hover:text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors">
-                Kontakt
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* ── 1. HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative bg-gradient-to-br from-rose-50 via-rose-100 to-rose-50 py-20 sm:py-32 px-4 text-center overflow-hidden">
