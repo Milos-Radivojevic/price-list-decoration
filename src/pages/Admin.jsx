@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import { auth } from '../firebase'
+import { auth, db } from '../firebase'
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
+import { collection, getDocs, updateDoc, doc, query, orderBy, where } from 'firebase/firestore'
 import AdminDekoracije from '../components/AdminDekoracije'
 import AdminPrijave from '../components/AdminPrijave'
 import AdminLidovi from '../components/AdminLidovi'
@@ -83,6 +84,13 @@ function ArrowLeftIcon({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+    </svg>
+  )
+}
+function BellIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
     </svg>
   )
 }
@@ -184,8 +192,15 @@ export default function Admin() {
   const [loginLoading, setLoginLoading] = useState(false)
   const [toast, setToast] = useState('')
 
+  const [notifOpen, setNotifOpen]         = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [notifLoading, setNotifLoading]   = useState(false)
+
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, u => setUser(u || null))
+    const unsub = onAuthStateChanged(auth, u => {
+      setUser(u || null)
+      if (u) fetchNotifications()
+    })
     return unsub
   }, [])
 
@@ -244,6 +259,39 @@ export default function Admin() {
     setSelectedLead(lead)
     setLidoviKey(k => k + 1)
     setSidebarOpen(false)
+  }
+
+  async function fetchNotifications() {
+    setNotifLoading(true)
+    try {
+      const snap = await getDocs(
+        query(collection(db, 'prijave'), where('procitano', '==', false), orderBy('kreirano', 'desc'))
+      )
+      setNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    } finally {
+      setNotifLoading(false)
+    }
+  }
+
+  async function markNotifRead(id) {
+    await updateDoc(doc(db, 'prijave', id), { procitano: true })
+    setNotifications(prev => prev.filter(n => n.id !== id))
+  }
+
+  async function markAllRead() {
+    await Promise.all(notifications.map(n => updateDoc(doc(db, 'prijave', n.id), { procitano: true })))
+    setNotifications([])
+  }
+
+  function openNotifPanel() {
+    setNotifOpen(true)
+    fetchNotifications()
+  }
+
+  function formatNotifDate(ts) {
+    if (!ts) return ''
+    const d = ts.toDate ? ts.toDate() : new Date(ts)
+    return d.toLocaleDateString('sr-RS', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
   }
 
   // Determine header title from current route
@@ -350,6 +398,98 @@ export default function Admin() {
         </div>
       )}
 
+      {/* Notification panel */}
+      {notifOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/20"
+            onClick={() => setNotifOpen(false)}
+          />
+          <aside className="fixed right-0 top-0 h-full w-80 sm:w-96 bg-white z-50 shadow-2xl flex flex-col">
+            {/* Panel header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <BellIcon className="w-5 h-5 text-gray-600" />
+                <h3 className="text-sm font-bold text-gray-900">Obaveštenja</h3>
+                {notifications.length > 0 && (
+                  <span className="text-xs font-semibold bg-red-500 text-white px-2 py-0.5 rounded-full">
+                    {notifications.length}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setNotifOpen(false)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all"
+              >
+                <XIcon className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Panel body */}
+            <div className="flex-1 overflow-y-auto">
+              {notifLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="w-7 h-7 border-[3px] border-rose-100 border-t-rose-500 rounded-full animate-spin" />
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <BellIcon className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-500">Nema novih obaveštenja</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {notifications.map(n => (
+                    <div
+                      key={n.id}
+                      className="px-5 py-4 hover:bg-rose-50/50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        markNotifRead(n.id)
+                        setActiveTab('prijave')
+                        setNotifOpen(false)
+                        setSidebarOpen(false)
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0 mt-0.5" />
+                          <span className="text-sm font-semibold text-gray-900">{n.ime}</span>
+                        </div>
+                        <span className="text-[11px] text-gray-400 shrink-0">{formatNotifDate(n.kreirano)}</span>
+                      </div>
+                      {n.dekoracijaNaziv && (
+                        <p className="text-xs text-gray-500 ml-3.5 mb-0.5">
+                          <span className="font-medium">Dekoracija:</span> {n.dekoracijaNaziv}
+                        </p>
+                      )}
+                      {(n.komentar || n.poruka) && (
+                        <p className="text-xs text-gray-400 ml-3.5 line-clamp-1 italic">
+                          {n.komentar || n.poruka}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-400 ml-3.5 mt-0.5">{n.telefon}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Panel footer */}
+            {notifications.length > 0 && (
+              <div className="px-5 py-3 border-t border-gray-100">
+                <button
+                  onClick={markAllRead}
+                  className="w-full text-xs font-medium text-gray-500 hover:text-rose-600 py-2 rounded-lg hover:bg-rose-50 transition-colors"
+                >
+                  Označi sve kao pročitano
+                </button>
+              </div>
+            )}
+          </aside>
+        </>
+      )}
+
       {/* Main area */}
       <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
 
@@ -376,6 +516,22 @@ export default function Admin() {
           )}
 
           <h2 className="text-base font-semibold text-gray-900">{headerTitle}</h2>
+
+          {/* Notification bell */}
+          <div className="ml-auto">
+            <button
+              onClick={openNotifPanel}
+              className="relative p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all"
+              aria-label="Obaveštenja"
+            >
+              <BellIcon className="w-5 h-5" />
+              {notifications.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
+                  {notifications.length > 9 ? '9+' : notifications.length}
+                </span>
+              )}
+            </button>
+          </div>
         </header>
 
         {/* Page content */}
