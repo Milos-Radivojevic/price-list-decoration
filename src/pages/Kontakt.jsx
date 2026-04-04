@@ -42,7 +42,7 @@ export default function Kontakt() {
     setContactSending(true)
     setContactError('')
     try {
-      await addDoc(collection(db, 'kontakti'), { ...contactForm, kreirano: serverTimestamp() })
+      await addDoc(collection(db, 'kontakti'), { ...contactForm, procitano: false, kreirano: serverTimestamp() })
       setContactSent(true)
       setContactForm({ ime: '', telefon: '', email: '', poruka: '' })
     } catch {

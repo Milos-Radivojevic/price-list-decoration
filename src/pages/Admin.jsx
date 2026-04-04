@@ -264,23 +264,38 @@ export default function Admin() {
   async function fetchNotifications() {
     setNotifLoading(true)
     try {
-      const snap = await getDocs(
-        query(collection(db, 'prijave'), where('procitano', '==', false), orderBy('kreirano', 'desc'))
-      )
-      setNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      const [prijaveSnap, kontaktiSnap] = await Promise.all([
+        getDocs(query(collection(db, 'prijave'),  where('procitano', '==', false), orderBy('kreirano', 'desc'))),
+        getDocs(query(collection(db, 'kontakti'), where('procitano', '==', false), orderBy('kreirano', 'desc'))),
+      ])
+      const prijave  = prijaveSnap.docs.map(d => ({ id: d.id, _col: 'prijave',  ...d.data() }))
+      const kontakti = kontaktiSnap.docs.map(d => ({ id: d.id, _col: 'kontakti', ...d.data() }))
+      const all = [...prijave, ...kontakti].sort((a, b) => {
+        const ta = a.kreirano?.seconds ?? 0
+        const tb = b.kreirano?.seconds ?? 0
+        return tb - ta
+      })
+      setNotifications(all)
     } finally {
       setNotifLoading(false)
     }
   }
 
-  async function markNotifRead(id) {
-    await updateDoc(doc(db, 'prijave', id), { procitano: true })
-    setNotifications(prev => prev.filter(n => n.id !== id))
+  async function markNotifRead(n) {
+    await updateDoc(doc(db, n._col, n.id), { procitano: true })
+    setNotifications(prev => prev.filter(x => x.id !== n.id))
   }
 
   async function markAllRead() {
-    await Promise.all(notifications.map(n => updateDoc(doc(db, 'prijave', n.id), { procitano: true })))
+    await Promise.all(notifications.map(n => updateDoc(doc(db, n._col, n.id), { procitano: true })))
     setNotifications([])
+  }
+
+  function getNotifSource(n) {
+    if (n._col === 'kontakti')          return { label: 'Kontakt',          cls: 'bg-sky-100 text-sky-700' }
+    if (n.izvor === 'pocetna')          return { label: 'Početna stranica',  cls: 'bg-rose-100 text-rose-700' }
+    if (n.dekoracijaNaziv)              return { label: 'Proizvodi',          cls: 'bg-purple-100 text-purple-700' }
+    return                                     { label: 'Upit',              cls: 'bg-gray-100 text-gray-600' }
   }
 
   function openNotifPanel() {
@@ -440,37 +455,52 @@ export default function Admin() {
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
-                  {notifications.map(n => (
-                    <div
-                      key={n.id}
-                      className="px-5 py-4 hover:bg-rose-50/50 cursor-pointer transition-colors"
-                      onClick={() => {
-                        markNotifRead(n.id)
-                        setActiveTab('prijave')
-                        setNotifOpen(false)
-                        setSidebarOpen(false)
-                      }}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0 mt-0.5" />
+                  {notifications.map(n => {
+                    const src = getNotifSource(n)
+                    return (
+                      <div
+                        key={n._col + n.id}
+                        className="px-5 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          markNotifRead(n)
+                          if (n._col === 'prijave') setActiveTab('prijave')
+                          setNotifOpen(false)
+                          setSidebarOpen(false)
+                        }}
+                      >
+                        {/* Source badge + date */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${src.cls}`}>
+                            {src.label}
+                          </span>
+                          <span className="text-[11px] text-gray-400 shrink-0">{formatNotifDate(n.kreirano)}</span>
+                        </div>
+
+                        {/* Name */}
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
                           <span className="text-sm font-semibold text-gray-900">{n.ime}</span>
                         </div>
-                        <span className="text-[11px] text-gray-400 shrink-0">{formatNotifDate(n.kreirano)}</span>
+
+                        {/* Decoration (Proizvodi only) */}
+                        {n.dekoracijaNaziv && (
+                          <p className="text-xs text-gray-500 ml-3 mb-0.5">
+                            <span className="font-medium">Dekoracija:</span> {n.dekoracijaNaziv}
+                          </p>
+                        )}
+
+                        {/* Message snippet */}
+                        {(n.poruka || n.komentar) && (
+                          <p className="text-xs text-gray-400 ml-3 line-clamp-2 italic leading-relaxed">
+                            "{n.poruka || n.komentar}"
+                          </p>
+                        )}
+
+                        {/* Contact */}
+                        <p className="text-xs text-gray-400 ml-3 mt-1">{n.telefon}{n.email ? ` · ${n.email}` : ''}</p>
                       </div>
-                      {n.dekoracijaNaziv && (
-                        <p className="text-xs text-gray-500 ml-3.5 mb-0.5">
-                          <span className="font-medium">Dekoracija:</span> {n.dekoracijaNaziv}
-                        </p>
-                      )}
-                      {(n.komentar || n.poruka) && (
-                        <p className="text-xs text-gray-400 ml-3.5 line-clamp-1 italic">
-                          {n.komentar || n.poruka}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-400 ml-3.5 mt-0.5">{n.telefon}</p>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
