@@ -143,7 +143,7 @@ function SidebarContent({ user, activeTab, location, onNav, onLogout }) {
 }
 
 // ── Tab content ─────────────────────────────────────────────────────────────
-function AdminTabContent({ activeTab, selectedLead, onSelect, onBack, lidoviKey, dekoracijeKey }) {
+function AdminTabContent({ activeTab, selectedLead, onSelect, onBack, onConvertToLead, lidoviKey, dekoracijeKey }) {
   return (
     <>
       <div className={activeTab === 'dekoracije' ? '' : 'hidden'}>
@@ -153,7 +153,7 @@ function AdminTabContent({ activeTab, selectedLead, onSelect, onBack, lidoviKey,
         <AdminKategorije />
       </div>
       <div className={activeTab === 'prijave' ? '' : 'hidden'}>
-        <AdminPrijave />
+        <AdminPrijave onConvertToLead={onConvertToLead} />
       </div>
       <div className={activeTab === 'lidovi' ? '' : 'hidden'}>
         {selectedLead ? (
@@ -238,6 +238,12 @@ export default function Admin() {
   function handleBackFromLead() {
     setSelectedLead(null)
     setLidoviKey(k => k + 1)
+  }
+  function handleConvertToLead(lead) {
+    setActiveTab('lidovi')
+    setSelectedLead(lead)
+    setLidoviKey(k => k + 1)
+    setSidebarOpen(false)
   }
 
   // Determine header title from current route
@@ -381,6 +387,7 @@ export default function Admin() {
                 selectedLead={selectedLead}
                 onSelect={handleSelectLead}
                 onBack={handleBackFromLead}
+                onConvertToLead={handleConvertToLead}
                 lidoviKey={lidoviKey}
                 dekoracijeKey={dekoracijeKey}
               />

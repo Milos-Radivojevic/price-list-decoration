@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { db } from '../firebase'
-import { collection, getDocs, updateDoc, doc, orderBy, query } from 'firebase/firestore'
+import { collection, getDocs, addDoc, updateDoc, doc, orderBy, query, serverTimestamp } from 'firebase/firestore'
 
-export default function AdminPrijave() {
+export default function AdminPrijave({ onConvertToLead }) {
   const [prijave, setPrijave] = useState([])
   const [loading, setLoading] = useState(true)
+  const [confirming, setConfirming] = useState(null) // prijava id awaiting confirm
+  const [converting, setConverting] = useState(null) // prijava id being saved
 
   useEffect(() => {
     async function load() {
@@ -22,6 +24,29 @@ export default function AdminPrijave() {
   async function markAsRead(id) {
     await updateDoc(doc(db, 'prijave', id), { procitano: true })
     setPrijave(prev => prev.map(p => p.id === id ? { ...p, procitano: true } : p))
+  }
+
+  async function convertToLead(prijava) {
+    setConverting(prijava.id)
+    try {
+      const data = {
+        ime:      prijava.ime || '',
+        telefon:  prijava.telefon || '',
+        email:    prijava.email || '',
+        komentar: prijava.komentar || prijava.poruka || '',
+        stavke:   [],
+        status:   'nova',
+        kreirano:  serverTimestamp(),
+        azurirano: serverTimestamp(),
+        beleska:   '',
+      }
+      const ref = await addDoc(collection(db, 'lidovi'), data)
+      const newLead = { id: ref.id, ...data, kreirano: new Date(), azurirano: new Date() }
+      setConfirming(null)
+      onConvertToLead?.(newLead)
+    } finally {
+      setConverting(null)
+    }
   }
 
   function formatDate(ts) {
@@ -128,15 +153,43 @@ export default function AdminPrijave() {
                 </div>
               )}
 
-              {/* Mark as read */}
-              {!p.procitano && (
-                <button
-                  onClick={e => { e.stopPropagation(); markAsRead(p.id) }}
-                  className="text-xs text-rose-600 border border-rose-200 hover:border-rose-400 hover:bg-rose-50 rounded-lg px-3 py-1.5 transition-all"
-                >
-                  Označi kao pročitano
-                </button>
-              )}
+              {/* Actions row */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {!p.procitano && (
+                  <button
+                    onClick={e => { e.stopPropagation(); markAsRead(p.id) }}
+                    className="text-xs text-rose-600 border border-rose-200 hover:border-rose-400 hover:bg-rose-50 rounded-lg px-3 py-1.5 transition-all"
+                  >
+                    Označi kao pročitano
+                  </button>
+                )}
+
+                {confirming === p.id ? (
+                  <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5" onClick={e => e.stopPropagation()}>
+                    <span className="text-xs text-amber-800 font-medium">Konvertovati u lid?</span>
+                    <button
+                      onClick={() => convertToLead(p)}
+                      disabled={converting === p.id}
+                      className="text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-60 rounded px-2.5 py-1 transition-colors"
+                    >
+                      {converting === p.id ? 'Čuvanje...' : 'Potvrdi'}
+                    </button>
+                    <button
+                      onClick={() => setConfirming(null)}
+                      className="text-xs text-gray-500 hover:text-gray-800 transition-colors"
+                    >
+                      Otkaži
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={e => { e.stopPropagation(); setConfirming(p.id) }}
+                    className="text-xs text-gray-600 border border-gray-200 hover:border-rose-300 hover:text-rose-700 hover:bg-rose-50 rounded-lg px-3 py-1.5 transition-all"
+                  >
+                    Konvertuj u lid →
+                  </button>
+                )}
+              </div>
             </div>
           ))}
           </div>
