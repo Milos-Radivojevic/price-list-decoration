@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { auth, db } from '../firebase'
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
-import { collection, getDocs, updateDoc, doc, query, orderBy, where } from 'firebase/firestore'
+import { collection, getDocs, updateDoc, doc, query, where } from 'firebase/firestore'
 import AdminDekoracije from '../components/AdminDekoracije'
 import AdminPrijave from '../components/AdminPrijave'
 import AdminLidovi from '../components/AdminLidovi'
@@ -265,8 +265,8 @@ export default function Admin() {
     setNotifLoading(true)
     try {
       const [prijaveSnap, kontaktiSnap] = await Promise.all([
-        getDocs(query(collection(db, 'prijave'),  where('procitano', '==', false), orderBy('kreirano', 'desc'))),
-        getDocs(query(collection(db, 'kontakti'), where('procitano', '==', false), orderBy('kreirano', 'desc'))),
+        getDocs(query(collection(db, 'prijave'),  where('procitano', '==', false))),
+        getDocs(query(collection(db, 'kontakti'), where('procitano', '==', false))),
       ])
       const prijave  = prijaveSnap.docs.map(d => ({ id: d.id, _col: 'prijave',  ...d.data() }))
       const kontakti = kontaktiSnap.docs.map(d => ({ id: d.id, _col: 'kontakti', ...d.data() }))
