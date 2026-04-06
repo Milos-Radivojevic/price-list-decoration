@@ -491,13 +491,41 @@ export default function Home() {
 
       {/* ── 7. HOW IT WORKS ─────────────────────────────────────────────────── */}
       <section className="py-14 sm:py-20 px-4 bg-rose-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-10">Kako funkcioniše?</h2>
-          <div className="flex flex-col sm:flex-row items-start gap-6 sm:gap-0">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-10 text-center">Kako funkcioniše?</h2>
+
+          {/* Mobile: vertical timeline */}
+          <div className="sm:hidden flex flex-col gap-0 max-w-sm mx-auto">
             {[
-              { num: '1', title: 'Odaberi dekoracije',  desc: 'Pregledaj katalog i filtriraj po ceni, kolekciji i oznaci' },
-              { num: '2', title: 'Izračunaj cenu',       desc: 'Unesite broj gostiju i dobijte okvirnu cenu odmah' },
-              { num: '3', title: 'Pošalji upit',         desc: 'Mi odgovaramo u roku od jednog radnog dana. Sve besplatno.' },
+              { num: '1', title: 'Odaberi dekoracije', desc: 'Pregledaj katalog i filtriraj po ceni, kolekciji i oznaci' },
+              { num: '2', title: 'Izračunaj cenu',      desc: 'Unesite broj gostiju i dobijte okvirnu cenu odmah' },
+              { num: '3', title: 'Pošalji upit',        desc: 'Mi odgovaramo u roku od jednog radnog dana. Sve besplatno.' },
+            ].map(({ num, title, desc }, i, arr) => (
+              <div key={num} className="flex gap-4">
+                {/* Left: number + connector line */}
+                <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 rounded-full bg-rose-600 text-white font-bold text-base flex items-center justify-center shadow-sm shrink-0">
+                    {num}
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div className="w-0.5 flex-1 bg-rose-200 my-1" />
+                  )}
+                </div>
+                {/* Right: text */}
+                <div className={`pb-8 pt-1.5 ${i === arr.length - 1 ? 'pb-0' : ''}`}>
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: horizontal with arrows */}
+          <div className="hidden sm:flex items-start">
+            {[
+              { num: '1', title: 'Odaberi dekoracije', desc: 'Pregledaj katalog i filtriraj po ceni, kolekciji i oznaci' },
+              { num: '2', title: 'Izračunaj cenu',      desc: 'Unesite broj gostiju i dobijte okvirnu cenu odmah' },
+              { num: '3', title: 'Pošalji upit',        desc: 'Mi odgovaramo u roku od jednog radnog dana. Sve besplatno.' },
             ].map(({ num, title, desc }, i) => (
               <>
                 <div key={num} className="flex-1 flex flex-col items-center gap-3 px-4">
@@ -505,10 +533,10 @@ export default function Home() {
                     {num}
                   </div>
                   <h3 className="text-sm font-bold text-gray-900">{title}</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed max-w-[180px] mx-auto">{desc}</p>
+                  <p className="text-xs text-gray-500 leading-relaxed max-w-[180px] text-center">{desc}</p>
                 </div>
                 {i < 2 && (
-                  <div key={`sep-${i}`} className="hidden sm:flex items-center justify-center pt-4 text-rose-300">
+                  <div key={`sep-${i}`} className="flex items-center justify-center pt-4 text-rose-300 shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
