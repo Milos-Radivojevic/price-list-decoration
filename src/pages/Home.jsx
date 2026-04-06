@@ -437,11 +437,6 @@ export default function Home() {
                       <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-snug line-clamp-2">
                         {d.naziv}
                       </p>
-                      {d.kolekcijaNaziv && (
-                        <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded w-fit">
-                          {d.kolekcijaNaziv}
-                        </span>
-                      )}
                       {minPrice > 0 && (
                         <p className="text-xs font-bold text-rose-600 mt-auto">
                           od {minPrice.toLocaleString('sr-RS')} RSD
