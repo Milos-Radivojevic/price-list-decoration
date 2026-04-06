@@ -521,40 +521,53 @@ export default function Home() {
       </section>
 
       {/* ── 8. TESTIMONIALS ─────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-20 px-4 bg-white">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-10">Šta kažu naši klijenti</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {[
-              {
-                quote: 'Sve je bilo savršeno! Cvetići su bili prelepi i tačno onakvi kakvi smo zamislili.',
-                name: 'Jovana M.',
-                city: 'Niš',
-              },
-              {
-                quote: 'Brza dostava, ljubazna komunikacija i fenomenalan kvalitet. Preporučujem svima!',
-                name: 'Milica T.',
-                city: 'Beograd',
-              },
-              {
-                quote: 'Naručivala sam za devojačko veče i svadbu. Svaki put odlično!',
-                name: 'Ana P.',
-                city: 'Novi Sad',
-              },
-            ].map(({ quote, name, city }) => (
-              <div key={name} className="bg-gray-50 border border-gray-100 rounded-xl p-6 text-left flex flex-col gap-4">
-                <div className="flex gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => <StarIcon key={i} />)}
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed italic flex-1">"{quote}"</p>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{name}</p>
-                  <p className="text-xs text-gray-400">{city}</p>
+      <section className="py-14 sm:py-20 bg-white overflow-hidden">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-10 text-center px-4">Šta kažu naši klijenti</h2>
+
+        {(() => {
+          const items = [
+            { quote: 'Sve je bilo savršeno! Cvetići su bili prelepi i tačno onakvi kakvi smo zamislili.', name: 'Jovana M.', city: 'Niš' },
+            { quote: 'Brza dostava, ljubazna komunikacija i fenomenalan kvalitet. Preporučujem svima!',   name: 'Milica T.', city: 'Beograd' },
+            { quote: 'Naručivala sam za devojačko veče i svadbu. Svaki put odlično!',                    name: 'Ana P.',    city: 'Novi Sad' },
+          ]
+          const card = ({ quote, name, city }, i) => (
+            <div key={i} className="bg-gray-50 border border-gray-100 rounded-xl p-6 text-left flex flex-col gap-4 w-72 sm:w-80 shrink-0">
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, j) => <StarIcon key={j} />)}
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed italic flex-1">"{quote}"</p>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{name}</p>
+                <p className="text-xs text-gray-400">{city}</p>
+              </div>
+            </div>
+          )
+          return (
+            <>
+              {/* Mobile: infinite marquee */}
+              <div className="sm:hidden">
+                <style>{`
+                  @keyframes marquee-rev {
+                    0%   { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                  }
+                  .testimonial-track { animation: marquee-rev 18s linear infinite; }
+                  .testimonial-track:hover { animation-play-state: paused; }
+                `}</style>
+                <div className="flex">
+                  <div className="testimonial-track flex gap-4 px-4">
+                    {[...items, ...items].map((t, i) => card(t, i))}
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+
+              {/* Desktop: normal 3-column grid */}
+              <div className="hidden sm:grid grid-cols-3 gap-5 max-w-5xl mx-auto px-4">
+                {items.map((t, i) => card(t, i))}
+              </div>
+            </>
+          )
+        })()}
       </section>
 
       {/* ── 9. INQUIRY FORM ─────────────────────────────────────────────────── */}
