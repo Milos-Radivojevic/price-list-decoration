@@ -219,15 +219,49 @@ export default function Home() {
       </section>
 
       {/* ── 2. TRUST BAR ────────────────────────────────────────────────────── */}
-      <section className="bg-white border-b border-gray-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-7">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-0 sm:divide-x sm:divide-gray-100">
+      <section className="bg-white border-b border-gray-100 overflow-hidden">
+        {/* Mobile: infinite marquee */}
+        <div className="sm:hidden py-5">
+          <style>{`
+            @keyframes marquee {
+              0%   { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .marquee-track { animation: marquee 14s linear infinite; }
+            .marquee-track:hover { animation-play-state: paused; }
+          `}</style>
+          <div className="flex">
+            <div className="marquee-track flex shrink-0">
+              {[
+                { icon: <IconHand />,  label: 'Ručna izrada',           desc: 'Svaka dekoracija je jedinstvena' },
+                { icon: <IconTruck />, label: 'Dostava po celoj Srbiji', desc: 'Šaljemo na vašu adresu' },
+                { icon: <IconClock />, label: 'Odgovor za 24h',          desc: 'Brza i ljubazna komunikacija' },
+                { icon: <IconHand />,  label: 'Ručna izrada',           desc: 'Svaka dekoracija je jedinstvena' },
+                { icon: <IconTruck />, label: 'Dostava po celoj Srbiji', desc: 'Šaljemo na vašu adresu' },
+                { icon: <IconClock />, label: 'Odgovor za 24h',          desc: 'Brza i ljubazna komunikacija' },
+              ].map(({ icon, label, desc }, i) => (
+                <div key={i} className="flex items-center gap-2.5 px-6 shrink-0">
+                  <span className="text-rose-500 shrink-0">{icon}</span>
+                  <div className="whitespace-nowrap">
+                    <p className="text-sm font-semibold text-gray-900">{label}</p>
+                    <p className="text-xs text-gray-500">{desc}</p>
+                  </div>
+                  <span className="ml-6 text-gray-200 text-lg">·</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: normal 3-column */}
+        <div className="hidden sm:block max-w-4xl mx-auto px-6 py-7">
+          <div className="grid grid-cols-3 divide-x divide-gray-100">
             {[
-              { icon: <IconHand />, label: 'Ručna izrada', desc: 'Svaka dekoracija je jedinstvena' },
+              { icon: <IconHand />,  label: 'Ručna izrada',           desc: 'Svaka dekoracija je jedinstvena' },
               { icon: <IconTruck />, label: 'Dostava po celoj Srbiji', desc: 'Šaljemo na vašu adresu' },
-              { icon: <IconClock />, label: 'Odgovor za 24h', desc: 'Brza i ljubazna komunikacija' },
+              { icon: <IconClock />, label: 'Odgovor za 24h',          desc: 'Brza i ljubazna komunikacija' },
             ].map(({ icon, label, desc }) => (
-              <div key={label} className="flex items-center gap-3 sm:justify-center sm:px-8">
+              <div key={label} className="flex items-center gap-3 justify-center px-8">
                 <span className="text-rose-500 shrink-0">{icon}</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{label}</p>
