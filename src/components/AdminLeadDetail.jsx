@@ -222,7 +222,7 @@ export default function AdminLeadDetail({ lead: initialLead, onBack }) {
       id: crypto.randomUUID(),
       naziv: d.naziv,
       dekoracijaId: d.id,
-      slikaUrl: d.slikaUrl || '',
+      slikaUrl: d.slikeUrls?.[0] || d.slikaUrl || '',
       grupa: d.grupa || 'rever',
       cenaMuska: d.cenaMuska ?? 0,
       cenaZenska: d.cenaZenska ?? 0,
@@ -534,8 +534,8 @@ export default function AdminLeadDetail({ lead: initialLead, onBack }) {
                   {dekoracije.map(d => (
                     <button key={d.id} onClick={() => addStavka(d)}
                       className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-rose-300 hover:bg-rose-50/40 transition-all text-left w-full group">
-                      {d.slikaUrl
-                        ? <img src={d.slikaUrl} alt={d.naziv} className="w-11 h-10 object-cover rounded-lg shrink-0 border border-gray-200" />
+                      {d.slikeUrls?.[0] || d.slikaUrl
+                        ? <img src={d.slikeUrls?.[0] || d.slikaUrl} alt={d.naziv} className="w-11 h-10 object-cover rounded-lg shrink-0 border border-gray-200" />
                         : <div className="w-11 h-10 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center text-gray-400 text-xs">—</div>
                       }
                       <div className="flex-1 min-w-0">
