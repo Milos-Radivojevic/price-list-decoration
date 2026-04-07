@@ -12,6 +12,64 @@ const HISTORY_CONFIG = {
   kreiran:         { dot: 'bg-rose-400',   label: 'Kreiran'  },
 }
 
+// ── Status pipeline ───────────────────────────────────────────────────────────
+const PIPELINE_KEYS = ['novi', 'kontaktiraj', 'u_pregovorima', 'dobijeno']
+
+const PIPELINE_COLORS = {
+  novi:          { active: 'bg-blue-500',   ring: 'ring-blue-200',   text: 'text-blue-700',   bg: 'bg-blue-50'   },
+  kontaktiraj:   { active: 'bg-amber-500',  ring: 'ring-amber-200',  text: 'text-amber-700',  bg: 'bg-amber-50'  },
+  u_pregovorima: { active: 'bg-purple-500', ring: 'ring-purple-200', text: 'text-purple-700', bg: 'bg-purple-50' },
+  dobijeno:      { active: 'bg-green-500',  ring: 'ring-green-200',  text: 'text-green-700',  bg: 'bg-green-50'  },
+  izgubljeno:    { active: 'bg-gray-400',   ring: 'ring-gray-200',   text: 'text-gray-600',   bg: 'bg-gray-50'   },
+}
+
+function StatusPipeline({ value, onChange, disabled }) {
+  const pipelineIdx = PIPELINE_KEYS.indexOf(value)
+  const isLost = value === 'izgubljeno'
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {PIPELINE_KEYS.map((key, idx) => {
+        const st = getStatusDef(key)
+        const colors = PIPELINE_COLORS[key]
+        const isCurrent = value === key
+        const isPast = !isLost && idx < pipelineIdx
+        return (
+          <button
+            key={key}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all disabled:cursor-not-allowed
+              ${isCurrent
+                ? `${colors.bg} ${colors.text} ring-2 ${colors.ring} border-transparent shadow-sm`
+                : isPast
+                  ? 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                  : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600'
+              }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCurrent ? colors.active : isPast ? 'bg-gray-400' : 'bg-gray-300'}`} />
+            {st.label}
+          </button>
+        )
+      })}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange('izgubljeno')}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all disabled:cursor-not-allowed
+          ${isLost
+            ? 'bg-red-50 text-red-600 ring-2 ring-red-200 border-transparent shadow-sm'
+            : 'bg-white text-gray-400 border-gray-200 hover:border-red-200 hover:text-red-500 hover:bg-red-50'
+          }`}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isLost ? 'bg-red-500' : 'bg-gray-300'}`} />
+        Izgubljeno
+      </button>
+    </div>
+  )
+}
+
 // ── Stepper ───────────────────────────────────────────────────────────────────
 function Stepper({ value, onChange }) {
   function set(n) { onChange(Math.max(0, n)) }
@@ -178,7 +236,6 @@ export default function AdminLeadDetail({ lead: initialLead, onBack }) {
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const grandTotal = calcTotal(stavke)
-  const currentSt  = getStatusDef(status)
 
   return (
     <div className="max-w-5xl">
@@ -193,63 +250,54 @@ export default function AdminLeadDetail({ lead: initialLead, onBack }) {
       </button>
 
       {/* ── Header card ── */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-wrap items-start gap-5">
-          {/* Avatar */}
-          <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center text-lg font-bold shrink-0">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+        {/* Top: avatar + contact + call button */}
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center text-xl font-bold shrink-0 ring-2 ring-rose-200/50">
             {getInitials(initialLead.ime)}
           </div>
 
-          {/* Contact info */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-semibold text-gray-900">{initialLead.ime}</h2>
-            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5">
+            <h2 className="text-xl font-bold text-gray-900 leading-tight">{initialLead.ime}</h2>
+
+            {initialLead.email && (
               <a href={`mailto:${initialLead.email}`}
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-rose-600 transition-colors">
-                <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" className="shrink-0 text-gray-400">
+                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-rose-600 transition-colors mt-1.5 truncate">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13" className="shrink-0 text-gray-400">
                   <path d="M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3Z" />
                   <path d="m19 8.839-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z" />
                 </svg>
-                {initialLead.email}
+                <span className="truncate">{initialLead.email}</span>
               </a>
-              <div className="flex items-center gap-2">
-                <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" className="shrink-0 text-gray-400">
-                  <path fillRule="evenodd" d="M2 3.5A1.5 1.5 0 0 1 3.5 2h1.148a1.5 1.5 0 0 1 1.465 1.175l.716 3.223a1.5 1.5 0 0 1-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 0 0 6.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 0 1 1.767-1.052l3.223.716A1.5 1.5 0 0 1 18 15.352V16.5a1.5 1.5 0 0 1-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 0 1 2.43 8.326 13.019 13.019 0 0 1 2 5V3.5Z" clipRule="evenodd" />
-                </svg>
-                <span className="text-sm text-gray-700">{initialLead.telefon}</span>
-                <a href={`tel:${initialLead.telefon}`}
-                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                  <svg viewBox="0 0 16 16" fill="currentColor" width="11" height="11">
-                    <path fillRule="evenodd" d="M1.5 2.5A1.5 1.5 0 0 1 3 1h.94a1.5 1.5 0 0 1 1.463 1.17l.36 1.8a1.5 1.5 0 0 1-.697 1.584l-.587.352a11.047 11.047 0 0 0 5.115 5.115l.352-.587a1.5 1.5 0 0 1 1.584-.697l1.8.36A1.5 1.5 0 0 1 14.5 11.06V12a1.5 1.5 0 0 1-1.5 1.5c-6.075 0-11-4.925-11-11Z" clipRule="evenodd" />
-                  </svg>
-                  Pozovi
-                </a>
-              </div>
-            </div>
-            <p className="text-xs text-gray-400 mt-2">Kreirano: {formatDateTime(initialLead.kreirano)}</p>
-          </div>
+            )}
 
-          {/* Status */}
-          <div className="flex flex-col gap-1.5 shrink-0">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</label>
-            <div className="relative">
-              <select
-                value={status}
-                onChange={e => changeStatus(e.target.value)}
-                disabled={savingStatus}
-                className={`appearance-none text-sm font-semibold pl-3.5 pr-8 py-2 rounded-xl border-2 outline-none cursor-pointer transition-all disabled:opacity-60
-                  ${currentSt.bg} ${currentSt.text} border-current/20`}
-              >
-                {STATUSES.map(s => (
-                  <option key={s.key} value={s.key}>{s.label}</option>
-                ))}
-              </select>
-              <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none opacity-50"
-                viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+            <div className="flex items-center gap-2 mt-1">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13" className="shrink-0 text-gray-400">
+                <path fillRule="evenodd" d="M2 3.5A1.5 1.5 0 0 1 3.5 2h1.148a1.5 1.5 0 0 1 1.465 1.175l.716 3.223a1.5 1.5 0 0 1-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 0 0 6.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 0 1 1.767-1.052l3.223.716A1.5 1.5 0 0 1 18 15.352V16.5a1.5 1.5 0 0 1-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 0 1 2.43 8.326 13.019 13.019 0 0 1 2 5V3.5Z" clipRule="evenodd" />
               </svg>
+              <span className="text-sm font-medium text-gray-700">{initialLead.telefon}</span>
+              <a href={`tel:${initialLead.telefon}`}
+                className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors">
+                <svg viewBox="0 0 16 16" fill="currentColor" width="11" height="11">
+                  <path fillRule="evenodd" d="M1.5 2.5A1.5 1.5 0 0 1 3 1h.94a1.5 1.5 0 0 1 1.463 1.17l.36 1.8a1.5 1.5 0 0 1-.697 1.584l-.587.352a11.047 11.047 0 0 0 5.115 5.115l.352-.587a1.5 1.5 0 0 1 1.584-.697l1.8.36A1.5 1.5 0 0 1 14.5 11.06V12a1.5 1.5 0 0 1-1.5 1.5c-6.075 0-11-4.925-11-11Z" clipRule="evenodd" />
+                </svg>
+                Pozovi
+              </a>
             </div>
+
+            <p className="text-xs text-gray-400 mt-1.5">Kreirano: {formatDateTime(initialLead.kreirano)}</p>
           </div>
+        </div>
+
+        {/* Status pipeline */}
+        <div className="mt-5 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Status</span>
+            {savingStatus && (
+              <div className="w-3.5 h-3.5 border-2 border-gray-200 border-t-gray-400 rounded-full animate-spin" />
+            )}
+          </div>
+          <StatusPipeline value={status} onChange={changeStatus} disabled={savingStatus} />
         </div>
       </div>
 
