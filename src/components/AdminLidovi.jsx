@@ -289,10 +289,7 @@ export default function AdminLidovi({ onSelect }) {
                 >
                   {/* Left padding after border */}
                   <div className="pl-4 flex items-center gap-3 min-w-0 flex-1 md:flex-none">
-                    <div className="w-9 h-9 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center text-xs font-bold shrink-0">
-                      {getInitials(l.ime)}
-                    </div>
-                    <div className="min-w-0">
+<div className="min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{l.ime}</p>
                       <p className="text-xs text-gray-500">{l.telefon}</p>
                       {/* Mobile only: deko + status + date */}

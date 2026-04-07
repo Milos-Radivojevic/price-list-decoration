@@ -253,11 +253,7 @@ export default function AdminLeadDetail({ lead: initialLead, onBack }) {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
         {/* Top: avatar + contact + call button */}
         <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center text-xl font-bold shrink-0 ring-2 ring-rose-200/50">
-            {getInitials(initialLead.ime)}
-          </div>
-
-          <div className="flex-1 min-w-0">
+<div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-gray-900 leading-tight">{initialLead.ime}</h2>
 
             {initialLead.email && (
